@@ -1,0 +1,2 @@
+# Ingress every 3 minutes
+*/3 * * * * /usr/local/bin/vegmod ingress >> /app/logs/praw.log 2>&1
