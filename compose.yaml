@@ -1,0 +1,68 @@
+services:
+  vegmod-nginx:
+    image: nginx
+    env_file: .env
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+    ports:
+      - "9400:9400"
+    networks:
+      - frontend
+      - backend
+      - cloudflared
+
+  vegmod-postgres:
+    image: postgres:16.3-bookworm
+    env_file: .env
+    restart: always
+    expose:
+      - "5432"
+    ports:
+      - "9401:5432"
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  vegmod-ingress:
+    build: ./ingress
+    restart: always
+    env_file: .env
+    volumes:
+      - ./logs:/app/logs
+      - ./data/ingress:/app/data
+
+  vegmod-rails:
+    build: ./backend
+    command: ./bin/rails s -b 0.0.0.0 -p 9402
+    restart: always
+    env_file: .env
+    volumes:
+      - ./logs:/rails/log
+      - ./data:/rails/data
+    ports:
+      - "9402:9402"
+    networks:
+      - backend
+
+  vegmod-next:
+    build: 
+      context: ./frontend
+      dockerfile: dev.Dockerfile
+    restart: always
+    env_file: .env
+    expose:
+      - "3000"
+    networks:
+      - frontend
+    volumes:
+      - type: bind
+        source: ./frontend/src
+        target: /app/src
+
+networks:
+  cloudflared:
+    external: true
+  frontend:
+  backend:
+    internal: true
