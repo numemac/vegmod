@@ -1,0 +1,2 @@
+class RedditorBlueprint < ApplicationBlueprint
+end
