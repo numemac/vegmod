@@ -1,0 +1,4 @@
+# Runs every 3 mintues with a one-minute offset
+# Python ingress happend every 3 minutes without offset
+# So this should import one minute after the python ingress
+1-59/3 * * * * RAILS_ENV=production cd /rails && bundle exec rake import:ingress >> /rails/log/rake.log 2>&1
