@@ -1,9 +1,9 @@
 import React from 'react';
 
-import { InspectHref, InspectRecord, InspectSingle } from '@/types/inspect';
+import { InspectShow, InspectHref, InspectRecord } from '@/types/inspect';
 import { StackedList } from './stacked_list';
 
-export const RestAssociation = ({ inspect }: { inspect: InspectSingle }) => {
+export const RestAssociation = ({ inspect }: { inspect: InspectShow }) => {
     const { has_many } = inspect.data;
 
     if (!inspect.association) {
@@ -21,13 +21,14 @@ export const RestAssociation = ({ inspect }: { inspect: InspectSingle }) => {
 
     const records : InspectRecord[] = has_many[inspect.association].records as InspectRecord[];
 
-    const items : { id: number, title: string, titleHref: InspectHref, subtitle: string, subtitleHref: InspectHref }[] = records.map((childRecord: InspectRecord) => {
+    const items : { id: number, title: string, titleHref: InspectHref, subtitle: string, subtitleHref: InspectHref | null, imageUrl : string | null }[] = records.map((childRecord: InspectRecord) => {
         return {
             id: childRecord.id,
             title: childRecord.label,
             titleHref: childRecord.href,
-            subtitle: inspect.data.label,
-            subtitleHref: inspect.data.href,
+            subtitle: childRecord.detail_label,
+            subtitleHref: childRecord.detail_href,
+            imageUrl: childRecord.image_url
         }
     });
 

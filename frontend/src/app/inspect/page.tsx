@@ -3,10 +3,9 @@
 import React from "react";
 import { useSearchParams, ReadonlyURLSearchParams } from "next/navigation";
 
-import { Inspect, InspectRecord } from "@/types/inspect";
-import { InspectPage } from "@/components/inspect_page";
-
-import { validateInspectRecord } from "@/validators/inspect";
+import { InspectShow, InspectIndex } from "@/types/inspect";
+import { InspectIndexPage } from "@/components/inspect";
+import { InspectShowPage } from "@/components/inspect/show";
 
 const nullIfEmpty = (str : string | null) => {
     if (str === null) {
@@ -21,9 +20,10 @@ export default function Page() {
 
     // /inspect?model=subreddits&id=2&association=comments
     // all params are strings but can be null
-    const model = searchParams.get('model') || 'subreddits';
+    const model = searchParams.get('model') || 'reddit/subreddits';
     const id = model ? searchParams.get('id') : null;
     const association = id ? nullIfEmpty(searchParams.get('association')) : null;
+    const page = searchParams.get('page') || '1';
 
     if (Array.isArray(model)) {
         throw new Error("Array model is not supported");
@@ -41,30 +41,22 @@ export default function Page() {
         throw new Error("Array association is not supported");
     }
 
-    const [_data, setData] : [InspectRecord | InspectRecord[] | null, any] = React.useState(null);
+    const [_data, setData] : [InspectShow | InspectIndex | null, any] = React.useState(null);
     const [error, setError] : [any, any] = React.useState(null);
 
     const apiEndpoint = () => {
-        if (!id) {
-            // index page
-            return `/${model}.json`;
-        }
-
-        // show page
-        let url = `/${model}/${id}.json`;
-
-        if (association) {
-            // show list of associated records
-            url += `?association=${association}`;
-        }
-
-        return url;
+        const params = new URLSearchParams();
+        params.append('model', model || '');
+        params.append('id', id || '');
+        params.append('association', association || '');
+        params.append('page', page || '');
+        return `${'/inspect.json'}?${params.toString()}`;
     }
 
     React.useEffect(() => {
         fetch(apiEndpoint())
         .then((res) => res.json())
-        .then((data) => {
+        .then((data : InspectShow | InspectIndex) => {
             setData(data);
         })
         .catch((err) => {
@@ -72,19 +64,23 @@ export default function Page() {
         });
     }, [searchParams]);
 
-    if (!_data) {
+    if (!_data || !_data['type']) {
         return <p>Loading...</p>;
     }
 
-    const inspect : Inspect = { 
-        model: model, 
-        id: id ? parseInt(id) : null,
-        association: association,
-        data: _data 
-    };
+    if (error) {
+        return <p>Error: {error.message}</p>;
+    }
 
-    return <>
-        <p>{ error }</p>
-        <InspectPage inspect={inspect} />
-    </>
+    const inspectData : InspectShow | InspectIndex = _data;
+
+    if (inspectData['type'] === 'InspectIndex') {
+        const inspectIndex : InspectIndex = inspectData;
+        return <InspectIndexPage inspect={inspectIndex} />
+    } else if (inspectData['type'] === 'InspectShow') {
+        const inspectShow : InspectShow = inspectData;
+        return <InspectShowPage inspect={inspectShow} />
+    } else {
+        throw new Error(`Unknown type ${inspectData['type']}`);
+    }
 }

@@ -12,7 +12,7 @@ export const Tabs = ({ tabs } : { tabs: any }) => {
 
   return (
     <div>
-      <div className="sm:hidden">
+      <div className="lg:hidden">
         <label htmlFor="tabs" className="sr-only">
           Select a tab
         </label>
@@ -28,7 +28,7 @@ export const Tabs = ({ tabs } : { tabs: any }) => {
           ))}
         </select>
       </div>
-      <div className="hidden sm:block">
+      <div className="hidden lg:block">
         <div className="border-b border-gray-200">
           <nav aria-label="Tabs" className="-mb-px flex space-x-4">
             {tabs.map((tab : any) => (
@@ -48,7 +48,7 @@ export const Tabs = ({ tabs } : { tabs: any }) => {
                   <span
                     className={classNames(
                       tab.current ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-900',
-                      'ml-3 hidden rounded-full px-2.5 py-0.5 text-xs font-medium md:inline-block',
+                      'ml-2 hidden rounded-full px-1 py-0.5 text-xs font-medium md:inline-block',
                     )}
                   >
                     {tab.count}

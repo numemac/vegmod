@@ -9,9 +9,9 @@ export const DescriptionList = ({ items }: { items: { key: string, value: any }[
 
     const renderItem = (key: any, value: any) => {
         return (
-            <div className="mt-6 border-t border-gray-100">
+            <div className="border-t border-gray-100">
                 <dl className="divide-y divide-gray-100">
-                <div className="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                <div className="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                     <dt className="text-sm font-medium leading-6 text-gray-900">{key}</dt>
                     <dd className="mt-1 flex text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                         <span className="flex-grow" title={value && value.length > 500 ? value : ''}>

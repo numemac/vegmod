@@ -3,7 +3,7 @@ import React from 'react';
 import humanizeString from 'humanize-string';
 
 export const RainbowBadge = ({ text }: { text: string }) => {
-    const pill = <span className="inline-flex items-center text-xs font-medium">{humanizeString(text)}</span>;
+    const pill = <span className="inline-flex items-center text-xs font-medium px-1">{humanizeString(text)}</span>;
 
     const colorClasses = [
         "bg-gray-100 text-gray-700",

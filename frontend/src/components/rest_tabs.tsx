@@ -1,11 +1,11 @@
 import { Tabs } from '@/components/tabs';
 import humanizeString from 'humanize-string';
 
-import { InspectSingle } from '@/types/inspect';
+import { InspectShow } from '@/types/inspect';
 
 import Link from 'next/link';
 
-export const RestTabs = ({ inspect } : { inspect: InspectSingle }) => {  
+export const RestTabs = ({ inspect } : { inspect: InspectShow }) => {  
     
     if (inspect.id === null) {
         return null;

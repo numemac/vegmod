@@ -1,10 +1,10 @@
 import React from 'react';
 import Link from 'next/link';
 import { HomeIcon } from '@heroicons/react/20/solid';
-import { Inspect } from '@/types/inspect';
+import humanizeString from 'humanize-string';
+import { LabeledHref } from '@/types/href';
 
-export const RestBreadcrumb = ({ inspect } : { inspect: Inspect }) => {
-    const { model, id, data } = inspect;
+export const RestBreadcrumb = ({ hierarchy } : { hierarchy: LabeledHref[] }) => {
 
     const truncate = (str: string, n: number) => {
         if (!str) return '';
@@ -33,34 +33,30 @@ export const RestBreadcrumb = ({ inspect } : { inspect: Inspect }) => {
         </svg>        
     )
 
-    const breadcrumbModel = (
-        <li>
+    const part = (labeledHref: LabeledHref) => {
+        return <li>
             <div className="flex items-center">
                 {slash}
-                <Link href={{ query: { model: model, id: null, association: null }}} className="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">
-                    {model.charAt(0).toUpperCase() + model.slice(1)}
+                <Link href={labeledHref.href} className="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+                    { humanizeString(
+                        truncate(
+                            labeledHref.label,
+                            20
+                        )
+                    )}
                 </Link>
             </div>
         </li>
-     )
-
-    const breadcrumbRecord = data ? (
-        <li>
-            <div className="flex items-center">
-                {slash}
-                <Link href={{ query: { model: model, id: id, association: null }}} className="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">
-                    {truncate(data.label, 20)}
-                </Link>
-            </div>
-        </li>
-     ) : null;
+    };
     
     return (
         <nav aria-label="Breadcrumb" className="flex py-4">
             <ol role="list" className="flex items-center space-x-4">
                 {breadcrumbHome}
-                {breadcrumbModel}
-                {breadcrumbRecord}
+                {hierarchy.map((labeledHref, index) => {
+                        return part(labeledHref);
+                    }
+                )}
             </ol>
         </nav>
     )
