@@ -8,3 +8,5 @@ logs/*
 */.idea/*
 */.git/*
 */.DS_Store
+dist/*.tar.gz
+vegmod.egg-info/

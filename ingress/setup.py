@@ -36,7 +36,7 @@ setup(
     url="https://github.com/numemac/vegmod/",
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
-    author="numemac",
+    author="vegmod",
     packages=find_packages(exclude=["tests", ".github"]),
     install_requires=read_requirements("requirements.txt"),
     entry_points={

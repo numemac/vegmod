@@ -5,7 +5,7 @@ USER root
 RUN apt-get update && apt-get install -y cron vim
 
 # Setup the crontab
-COPY ./dist/vegmod.crontab /etc/cron.d/vegmod.crontab
+COPY ./vegmod.crontab /etc/cron.d/vegmod.crontab
 RUN chmod 0644 /etc/cron.d/vegmod.crontab
 RUN crontab /etc/cron.d/vegmod.crontab
 
