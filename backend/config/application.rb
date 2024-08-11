@@ -24,7 +24,9 @@ module Backend
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
     # load app/blueprints for Blueprinter
-    config.autoload_paths << Rails.root.join("app/blueprints")
-    config.eager_load_paths << Rails.root.join("app/blueprints")
+    ["app/blueprints", "app/services", "app/plugins"].each do |path|
+      config.autoload_paths << Rails.root.join(path)
+      config.eager_load_paths << Rails.root.join(path)
+    end
   end
 end

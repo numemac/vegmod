@@ -1,2 +1,0 @@
-class CommentBlueprint < ApplicationBlueprint
-end

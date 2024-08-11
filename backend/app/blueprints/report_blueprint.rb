@@ -1,2 +1,0 @@
-class ReportBlueprint < ApplicationBlueprint
-end

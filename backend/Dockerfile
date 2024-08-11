@@ -16,6 +16,10 @@ ENV RAILS_ENV="production" \
 # Set debian mirror to france
 COPY sources.list /etc/apt/sources.list
 
+# Install python, tesseract-ocr and the vegmod pip package
+RUN apt-get update && apt-get install -y python3 python3-pip avahi-utils tesseract-ocr
+RUN pip3 install vegmod --break-system-packages
+
 # Throw-away build stage to reduce size of final image
 FROM base as build
 
@@ -36,7 +40,7 @@ COPY . .
 RUN bundle exec bootsnap precompile app/ lib/
 
 # Precompiling assets for production without requiring secret RAILS_MASTER_KEY
-RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
+# RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 
 
 # Final stage for app image

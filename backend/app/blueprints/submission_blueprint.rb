@@ -1,2 +1,0 @@
-class SubmissionBlueprint < ApplicationBlueprint
-end

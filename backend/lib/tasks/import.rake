@@ -231,10 +231,11 @@
 
 namespace :import do
   desc "Import data from ingress/ingress.json"
+  # ensure the app/plugins directory is loaded
   task ingress: :environment do
     data = JSON.parse(File.read("/rails/data/ingress/ingress.json"))
     for subreddit_data in data.values
-      subreddit = Subreddit.import(subreddit_data)
+      subreddit = Reddit::Subreddit.import(subreddit_data)
       Rails.logger.info "Imported subreddit #{subreddit.display_name}"
     end
   end

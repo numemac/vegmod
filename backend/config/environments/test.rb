@@ -61,4 +61,7 @@ Rails.application.configure do
 
   # Raise error when a before_action's only/except options reference missing actions
   config.action_controller.raise_on_missing_callback_actions = true
+
+  # https://github.com/rails/rails/pull/28209/commits
+  config.rake_eager_load = true
 end

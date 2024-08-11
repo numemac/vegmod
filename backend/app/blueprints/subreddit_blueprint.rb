@@ -1,2 +1,0 @@
-class SubredditBlueprint < ApplicationBlueprint
-end

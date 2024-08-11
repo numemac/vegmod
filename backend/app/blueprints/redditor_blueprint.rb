@@ -1,2 +1,0 @@
-class RedditorBlueprint < ApplicationBlueprint
-end

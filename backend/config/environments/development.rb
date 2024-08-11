@@ -33,8 +33,8 @@ Rails.application.configure do
     config.cache_store = :null_store
   end
 
-  # Store uploaded files on the local file system (see config/storage.yml for options).
-  config.active_storage.service = :local
+  # Store uploaded files on minio
+  config.active_storage.service = :minio
 
   # Don't care if the mailer can't send.
   config.action_mailer.raise_delivery_errors = false
@@ -60,7 +60,7 @@ Rails.application.configure do
   config.active_job.verbose_enqueue_logs = true
 
   # Suppress logger output for asset requests.
-  config.assets.quiet = true
+  # config.assets.quiet = true
 
   # Raises error for missing translations.
   # config.i18n.raise_on_missing_translations = true
@@ -73,4 +73,7 @@ Rails.application.configure do
 
   # Raise error when a before_action's only/except options reference missing actions
   config.action_controller.raise_on_missing_callback_actions = true
+
+  # https://github.com/rails/rails/pull/28209/commits
+  config.rake_eager_load = true
 end

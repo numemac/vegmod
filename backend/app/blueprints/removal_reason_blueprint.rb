@@ -1,2 +1,0 @@
-class RemovalReasonBlueprint < ApplicationBlueprint
-end
