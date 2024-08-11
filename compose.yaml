@@ -33,6 +33,7 @@ services:
       - ./data/ingress:/app/data
 
   vegmod-rails:
+    image: auguryan/vegmod-rails:latest
     build: ./backend
     command: ./bin/rails s -b 0.0.0.0 -p 9402
     restart: always
@@ -44,6 +45,18 @@ services:
       - "9402:9402"
     networks:
       - backend
+      - reddit
+
+  vegmod-rake-cron:
+    build: ./rake-cron
+    restart: always
+    env_file: .env
+    volumes:
+      - ./logs:/rails/log
+      - ./data:/rails/data
+    networks:
+      - backend
+      - reddit
 
   vegmod-next:
     build: 
@@ -60,9 +73,23 @@ services:
         source: ./frontend/src
         target: /app/src
 
+  vegmod-minio:
+    image: bitnami/minio
+    user: root
+    env_file:
+      - .env
+    ports:
+      - "9403:9403"
+      - "9001:9001"
+    networks:
+      - backend
+    volumes:
+      - ./data/minio:/bitnami/minio/data
+
 networks:
   cloudflared:
     external: true
   frontend:
+  reddit:
   backend:
     internal: true
