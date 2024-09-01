@@ -2,3 +2,21 @@
 # Python ingress happend every 3 minutes without offset
 # So this should import one minute after the python ingress
 1-59/3 * * * * RAILS_ENV=production cd /rails && bundle exec rake import:ingress >> /rails/log/rake.log 2>&1
+
+# hourly run rake metrics:hour
+0 * * * * RAILS_ENV=production cd /rails && bundle exec rake metrics:hour >> /rails/log/rake.log 2>&1
+
+# daily run rake metrics:day
+0 0 * * * RAILS_ENV=production cd /rails && bundle exec rake metrics:day >> /rails/log/rake.log 2>&1
+
+# weekly run rake metrics:week
+0 0 * * 0 RAILS_ENV=production cd /rails && bundle exec rake metrics:week >> /rails/log/rake.log 2>&1
+
+# monthly run rake metrics:month
+0 0 1 * * RAILS_ENV=production cd /rails && bundle exec rake metrics:month >> /rails/log/rake.log 2>&1
+
+# yearly run rake metrics:year
+0 0 1 1 * RAILS_ENV=production cd /rails && bundle exec rake metrics:year >> /rails/log/rake.log 2>&1
+
+# hourly on the 8th minute run sidebar:configure
+8 * * * * RAILS_ENV=production cd /rails && bundle exec rake sidebar:configure >> /rails/log/rake.log 2>&1
