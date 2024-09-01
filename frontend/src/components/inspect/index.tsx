@@ -1,7 +1,6 @@
 import React from 'react';
 import { InspectIndex, InspectRecord, InspectHref } from '@/types/inspect';
 import { StackedList } from '@/components/stacked_list';
-import { Paginate } from '@/components/paginate';
 import { InspectLayout } from './layout';
 import humanizeString from 'humanize-string';
 
@@ -12,14 +11,15 @@ export const InspectIndexPage = ({ inspect } : { inspect: InspectIndex }) => {
         return <>Loading...</>
     }
 
-    const items : { id: number, title: string, titleHref: InspectHref, subtitle: string, subtitleHref: InspectHref | null, imageUrl : string | null }[] = entries.map((childRecord: InspectRecord) => {
+    const items : { id: number, title: string, titleHref: InspectHref, subtitle: string, subtitleHref: InspectHref | null, imageUrl : string | null, externalUrl : string | null }[] = entries.map((childRecord: InspectRecord) => {
         return {
             id: childRecord.id,
             title: childRecord.label,
             titleHref: childRecord.href,
             subtitle: childRecord.detail_label,
             subtitleHref: childRecord.detail_href,
-            imageUrl: childRecord.image_url
+            imageUrl: childRecord.image_url,
+            externalUrl: childRecord.external_url
         }
     });
 

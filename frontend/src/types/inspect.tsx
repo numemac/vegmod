@@ -6,6 +6,7 @@ export interface InspectIndex {
     entries: InspectRecord[];
     model: string;
     pagination: Pagination;
+    models: string[];
 }
 
 export interface InspectShow {
@@ -26,10 +27,12 @@ export interface InspectRecord {
     detail_label: string;
     has_many: { [key: string]: InspectHasMany };
     has_one: { [key: string]: InspectRecord };
+    metrics: InspectMetric[];
     href: InspectHref;
     label: string;
     model: string;
     image_url: string | null;
+    external_url: string | null;
 }
 
 export interface InspectHref {
@@ -47,4 +50,16 @@ export interface InspectHasMany {
     model: string;
     count: number;
     records: InspectRecord[] | {};
+}
+
+export interface InspectMetric {
+    measure: string;
+    unit: string;
+    interval: number;
+    data_points: InspectMetricDataPoint[];
+}
+
+export interface InspectMetricDataPoint {
+    interval_start: string;
+    value: number;
 }

@@ -5,7 +5,7 @@ import humanizeString from 'humanize-string';
 
 import { InspectHref } from '@/types/inspect';
 
-export const LinkCard = ({ title, subtitle, href } : { title: string, subtitle: string, href: InspectHref }) => {
+export const LinkCard = ({ title, subtitle, href } : { title: string, subtitle: string, href: InspectHref | string }) => {
     return (
         <div
             key={title}

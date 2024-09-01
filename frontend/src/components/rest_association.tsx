@@ -21,14 +21,15 @@ export const RestAssociation = ({ inspect }: { inspect: InspectShow }) => {
 
     const records : InspectRecord[] = has_many[inspect.association].records as InspectRecord[];
 
-    const items : { id: number, title: string, titleHref: InspectHref, subtitle: string, subtitleHref: InspectHref | null, imageUrl : string | null }[] = records.map((childRecord: InspectRecord) => {
+    const items : { id: number, title: string, titleHref: InspectHref, subtitle: string, subtitleHref: InspectHref | null, imageUrl : string | null, externalUrl : string | null }[] = records.map((childRecord: InspectRecord) => {
         return {
             id: childRecord.id,
             title: childRecord.label,
             titleHref: childRecord.href,
             subtitle: childRecord.detail_label,
             subtitleHref: childRecord.detail_href,
-            imageUrl: childRecord.image_url
+            imageUrl: childRecord.image_url,
+            externalUrl: childRecord.external_url
         }
     });
 

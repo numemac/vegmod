@@ -1,7 +1,5 @@
 import React from 'react';
 import { InspectHref, InspectShow } from '@/types/inspect';
-import { Title } from '@/components/title';
-import { RestTabs } from '@/components/rest_tabs';
 import { RestAssociation } from '@/components/rest_association';
 import humanizeString from 'humanize-string';
 import { RainbowBadge } from '@/components/rainbow_badge';
@@ -10,6 +8,7 @@ import { LinkCard } from '@/components/link_card';
 import { DescriptionList } from '@/components/description_list';
 import { InspectLayout } from './layout';
 import Link from 'next/link';
+import { MetricBrowser } from '@/components/inspect/metric_browser';
 
 export const InspectShowPage = ({ inspect } : { inspect: InspectShow }) => {
     const { attributes, belongs_to, has_one } = inspect.data;
@@ -70,7 +69,7 @@ export const InspectShowPage = ({ inspect } : { inspect: InspectShow }) => {
 
     const renderImageUrl = (url: string | null) => {
         if (!url) {
-            return <h1>No image</h1>
+            return <></>;
         }
         return (
             <Link
@@ -83,6 +82,20 @@ export const InspectShowPage = ({ inspect } : { inspect: InspectShow }) => {
                     className="h-auto"
                 />
             </Link>
+        );
+    }
+
+    const renderExternalUrl = (url: string | null) => {
+        if (!url) {
+            return null;
+        }
+
+        return (
+            <LinkCard
+                title="View on Reddit"
+                subtitle={url}
+                href={url}
+            />
         );
     }
 
@@ -115,54 +128,54 @@ export const InspectShowPage = ({ inspect } : { inspect: InspectShow }) => {
 
     return (
         <InspectLayout hierarchy={hierarchy} apiEndpoint={inspect.apiEndpoint} pagination={inspect.pagination}>
-            <Title text={inspect.data.label}>
-                <span></span>
-            </Title>
-
-            {renderBadges(Object.keys(attributes).filter((key: string) => isBadge(key, attributes[key])))}
-
-            {renderStats(Object.keys(attributes).reduce((acc: { [key: string]: number }, key: string) => {
-                const stat = isStat(key, attributes[key]);
-                if (stat) {
-                    acc[key] = attributes[key];
-                }
-                return acc;
-            }, {}))}
-
-            {renderLinkCards(combinedEntries.reduce((acc: { [key: string]: { title: string, subtitle: string, href: InspectHref } }, [key, value]) => {
-                acc[key] = {
-                    title: key,
-                    subtitle: value.label,
-                    href: value.href
-                };
-                return acc;
-            }, {}))}
-
-            <RestTabs inspect={inspect} />
             {
                 inspect.association === null ? (
-                    <div className="flex flex-col gap-4">
-                        {renderImageUrl(inspect.data.image_url)}
-                        <DescriptionList items={Object.entries(attributes).filter(([key, value]) => {
-                            // filter out boolean
-                            if (typeof value === 'boolean') {
-                                return false;
+                    <>
+                        {renderBadges(Object.keys(attributes).filter((key: string) => isBadge(key, attributes[key])))}
+                        {renderStats(Object.keys(attributes).reduce((acc: { [key: string]: number }, key: string) => {
+                            const stat = isStat(key, attributes[key]);
+                            if (stat) {
+                                acc[key] = attributes[key];
                             }
+                            return acc;
+                        }, {}))}
 
-                            // filter out numbers
-                            if (typeof value === 'number') {
-                                return false;
-                            }
+                        {renderLinkCards(combinedEntries.reduce((acc: { [key: string]: { title: string, subtitle: string, href: InspectHref } }, [key, value]) => {
+                            acc[key] = {
+                                title: key,
+                                subtitle: value.label,
+                                href: value.href
+                            };
+                            return acc;
+                        }, {}))}
 
-                            return true;
-                        }).map(([key, value]) => {
-                            return {
-                                key: humanizeString(key),
-                                value: value
+                        <div className="flex flex-col gap-4">
+                            {renderImageUrl(inspect.data.image_url)}
+                            {renderExternalUrl(inspect.data.external_url)}
+
+                            { inspect.id && <MetricBrowser model={inspect.model} id={inspect.id} metrics={inspect.data.metrics} /> }
+
+                            <DescriptionList items={Object.entries(attributes).filter(([key, value]) => {
+                                // filter out boolean
+                                if (typeof value === 'boolean') {
+                                    return false;
+                                }
+
+                                // filter out numbers
+                                if (typeof value === 'number') {
+                                    return false;
+                                }
+
+                                return true;
+                            }).map(([key, value]) => {
+                                return {
+                                    key: humanizeString(key),
+                                    value: value
+                                }
                             }
-                        }
-                        )} />
-                    </div>
+                            )} />
+                        </div>
+                    </>
                 ) : (
                     <>
                         <RestAssociation inspect={inspect} />

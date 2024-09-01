@@ -1,8 +1,9 @@
+import React from "react";
+
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-
-import Navbar from "@/components/navbar";
+import { SidebarContainer } from "@/components/sidebar_container";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,10 +20,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Navbar />
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
+        <SidebarContainer>
           {children}
-        </div>
+        </SidebarContainer>
       </body>
     </html>
   );
