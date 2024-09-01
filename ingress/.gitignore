@@ -9,4 +9,5 @@ logs/*
 */.git/*
 */.DS_Store
 dist/*.tar.gz
+dist/*.whl
 vegmod.egg-info/

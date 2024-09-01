@@ -2,6 +2,12 @@
 vegmod.pycall exposes simple functions that can be called from the Ruby language.
 Each function must only accept and return simple types (numeric, string, arrays, hashes, etc.)
 """
+import os
+import requests
+from time import sleep
+from loguru import logger
+from PIL import Image
+from typing import Optional, Dict, List
 from vegmod import reddit
 
 def comment_delete(comment_id : str) -> None:
@@ -90,6 +96,15 @@ def comment_reply(comment_id : str, body : str) -> str:
     """
     return reddit.comment(comment_id).reply(body)
 
+def comment_reply_distinguish_lock(comment_id : str, body : str, how : str = 'yes', sticky: bool = False) -> str:
+    """
+    Reply to a comment with a reply, distinguish it, and lock it.
+    """
+    comment = reddit.comment(comment_id).reply(body)
+    comment.mod.distinguish(how=how, sticky=sticky)
+    comment.mod.lock()
+    return comment
+
 def submission_delete(submission_id : str) -> None:
     """
     Delete a submission by ID.
@@ -158,7 +173,7 @@ def submission_reply(submission_id : str, body : str) -> str:
     """
     return reddit.submission(submission_id).reply(body)
 
-def submission_send_removal_message(submission_id : str, message: str) -> None:
+def submission_mod_send_removal_message(submission_id : str, message: str) -> None:
     """
     Send a removal message to the author of a submission.
     """
@@ -223,3 +238,246 @@ def submission_report(submission_id : str, reason : str) -> None:
     Report a submission by ID.
     """
     return reddit.submission(submission_id).report(reason)
+
+def subreddit_contributor_add(subreddit_id : str, redditor_id : str) -> None:
+    """
+    Add a contributor to a subreddit.
+    """
+    return reddit.subreddit(subreddit_id).contributor.add(redditor_id)
+
+def subreddit_contributor_exists(subreddit_id : str, redditor_id : str) -> bool:
+    """
+    Check if a redditor is a contributor to a subreddit.
+    """
+    return reddit.subreddit(subreddit_id).contributor(redditor_id) is not None
+
+def subreddit_contributor_remove(subreddit_id : str, redditor_id : str) -> None:
+    """
+    Remove a contributor from a subreddit.
+    """
+    return reddit.subreddit(subreddit_id).contributor.remove(redditor_id)
+
+def subreddit_mod_settings(subreddit_id) -> dict[str, str | int | bool]:
+    """
+    Get the settings on a subreddit.
+    """
+    return reddit.subreddit(subreddit_id).mod.settings()
+
+def subreddit_mod_update(subreddit_id : str, **settings : str | int | bool) -> dict[str, str | int | bool]:
+    """
+    Update the settings on a subreddit.
+    """
+    return reddit.subreddit(subreddit_id).mod.update(**settings)
+
+def subreddit_widgets_sidebar_delete_all(subreddit_id : str) -> None:
+    """
+    Delete all sidebar widgets on a subreddit.
+    """
+    try:
+        for widget in reddit.subreddit(subreddit_id).widgets.sidebar:
+            permanent_kinds = [
+                'id-card'
+                'moderators',
+                'subreddit-rules',
+            ]
+            if widget.kind not in permanent_kinds:       
+                try:
+                    # request will silently fail if not debounced
+                    sleep(3)
+
+                    widget.mod.delete()
+                except Exception as e:
+                    logger.error(f"Error deleting sidebar widget: {widget}, e: {e}")
+    except Exception as e:
+        logger.error(f"Error deleting sidebar widgets: {e}")
+    finally:
+        return None
+
+def subreddit_widgets_sidebar_delete_widget(subreddit_id: str, widget_id: str) -> None:
+    """
+    Delete a sidebar widget on a subreddit.
+    """
+    try:
+        for widget in reddit.subreddit(subreddit_id).widgets.sidebar:
+            if widget.id == widget_id:
+                widget.mod.delete()
+    except Exception as e:
+        logger.error(f"Error deleting sidebar widget: {widget_id}, e: {e}")
+    finally:
+        return None
+
+def subreddit_widgets_mod_upload_image(subreddit_id: str, image_url: str, link_url: str) -> Optional[Dict]:
+    if '.' not in image_url:
+        logger.error(f"Invalid image URL: {image_url}")
+        return None
+
+    image_url_ext = image_url.split('.')[-1]
+    if image_url_ext not in ['png', 'jpg', 'jpeg']:
+        logger.error(f"Invalid image EXT: {image_url}")
+        return None
+    
+    # save the image to a file
+    image_file_path = f'/tmp/praw_image_upload.{image_url_ext}'
+    try:
+        response = requests.get(image_url)
+        response.raise_for_status()
+        with open(image_file_path, 'wb') as f:
+            f.write(response.content)
+        
+        # extract the image dimensions using PIL
+        with Image.open(image_file_path) as img:
+            width, height = img.size
+        
+        upload_url = reddit.subreddit(
+            subreddit_id
+        ).widgets.mod.upload_image(
+            image_file_path
+        )
+        
+        return {
+            'url': upload_url,
+            'linkUrl': link_url,
+            'width': width,
+            'height': height,
+        }
+    except requests.RequestException as e:
+        logger.error(f"Error downloading image: {e}")
+        return None
+    except IOError as e:
+        logger.error(f"Error processing image file: {e}")
+        return None
+    finally:
+        # Clean up the temporary image file
+        if os.path.exists(image_file_path):
+            os.remove(image_file_path)
+        
+
+def subreddit_widgets_mod_add_image_widget(subreddit_id: str, short_name: str, image_url: str, link_url: str) -> Optional[Dict]:
+    """
+    Add an image widget to a subreddit.
+    """
+    try:
+        image_data = [
+            subreddit_widgets_mod_upload_image(subreddit_id, image_url, link_url)
+        ]
+        
+        styles = {
+            'backgroundColor': '#FFFFFF',
+            'headerColor': '#0079d3',
+        }
+        
+        widget = reddit.subreddit(
+            subreddit_id
+        ).widgets.mod.add_image_widget(
+            short_name=short_name, 
+            data=image_data, 
+            styles=styles,
+            link_url=link_url
+        )
+        
+        return widget
+    except Exception as e:
+        logger.error(f"Error adding image widget: {e}")
+        return None
+
+def subreddit_widgets_mod_reupload_image(subreddit_id: str, widget_id: str, image_url: str, link_url: str) -> Optional[Dict]:
+    """
+    Update an image widget on a subreddit.
+    """
+    try:
+        widget = None
+        for w in reddit.subreddit(subreddit_id).widgets.sidebar:
+            if w.id == widget_id:
+                widget = w
+                break
+        
+        if widget is None:
+            logger.error(f"Widget not found: {widget_id}")
+            return None
+        
+        image_data = [
+            subreddit_widgets_mod_upload_image(subreddit_id, image_url, link_url)
+        ]
+        
+        widget = widget.mod.update(
+            data=image_data, 
+        )
+        
+        return widget
+    except Exception as e:
+        logger.error(f"Error updating image widget: {e}")
+        return None
+
+def subreddit_widgets_mod_add_community_list(subreddit_id: str, short_name: str, description: str, subreddits: List[str]) -> Optional[Dict]:
+    """
+    Add a community widget to a subreddit.
+
+    Parameters:
+    subreddit_id (str): The ID of the subreddit where the widget will be added.
+    short_name (str): The short name for the widget.
+    description (str): The description for the widget.
+    subreddits (List[str]): A list of subreddit names to include in the community widget.
+
+    Returns:
+    Optional[Dict]: The response from the Reddit API if successful, None otherwise.
+    """
+    try:
+        styles = {
+            'backgroundColor': '#FFFFFF',
+            'headerColor': '#0079d3',
+        }
+                
+        return reddit.subreddit(
+            subreddit_id
+        ).widgets.mod.add_community_list(
+            short_name=short_name, 
+            description=description,
+            data=subreddits,
+            styles=styles
+        )
+    except Exception as e:
+        logger.error(f"Error adding community widget: {e}")
+        return None
+
+def subreddit_widgets_mod_add_button_widget(subreddit_id: str, short_name: str, description: str, texts: List[str], urls: List[str]) -> Optional[Dict]:
+    """
+    Add a button widget to a subreddit.
+
+    Parameters:
+    subreddit_id (str): The ID of the subreddit where the widget will be added.
+    short_name (str): The short name for the widget.
+    description (str): The description for the widget.
+    texts (List[str]): A list of button texts.
+    urls (List[str]): A list of URLs to link to when the buttons are clicked.
+
+    Returns:
+    Optional[Dict]: The response from the Reddit API if successful, None otherwise.
+    """    
+    try:
+        styles = {
+            'backgroundColor': '#FFFFFF',
+            'headerColor': '#0079d3',
+        }
+                
+        buttons = [
+            {
+                'kind': 'text',
+                'text': text,
+                'url': url,
+                'color': '#FF4500',
+                'fillColor': '#FFFFFF',
+                'textColor': '#000000',
+            }
+            for text, url in zip(texts, urls)
+        ]
+        return reddit.subreddit(
+            subreddit_id
+        ).widgets.mod.add_button_widget(
+            short_name=short_name, 
+            description=description,
+            buttons=buttons,
+            styles=styles
+        ).id
+    except Exception as e:
+        logger.error(f"Error adding button widget: {e}")
+        return None

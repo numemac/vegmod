@@ -4,9 +4,6 @@ import os
 import typer
 import vegmod.ingress
 from vegmod import reddit
-from time import sleep
-
-from vegmod.pycall import subreddit_widgets_sidebar_delete_all, subreddit_widgets_mod_add_image_widget, subreddit_widgets_mod_add_button_widget, subreddit_widgets_mod_add_community_list
 
 app = typer.Typer()
 
@@ -28,21 +25,6 @@ def ls():
     subreddits = os.environ.get("INGRESS_SUBREDDITS").split(",")
     for subreddit in subreddits:
         typer.echo(subreddit)
-        
-@app.command()
-def setIcon(subreddit: str, icon_path: str):
-    """
-    Set the icon for a subreddit.
-    """
-    community_icon_url = reddit.subreddit(subreddit).stylesheet._upload_style_asset(
-        image_path=icon_path,
-        image_type="communityIcon",
-    )
-    
-    reddit.subreddit(subreddit).stylesheet._update_structured_styles(
-    {
-        'communityIcon': community_icon_url
-    })
 
 @app.command()
 def inspect(object_type: str, object_id: str):
@@ -69,25 +51,12 @@ def inspect(object_type: str, object_id: str):
         typer.echo("subreddit vars")
         typer.echo(vars(obj))
         
-        rules = obj.rules
-        typer.echo("subreddit rules vars")
-        typer.echo(vars(rules))
+        removal_reasons = obj.mod.removal_reasons
+        typer.echo("subreddit removal reasons vars")
+        typer.echo(vars(author))
         
-        typer.echo("subreddit rules printed")
-        typer.echo(rules)
-        
-        for rule in rules:
-            typer.echo("-------------------------")
-            typer.echo(rule.created_utc)
-            typer.echo(rule.description)
-            typer.echo(rule.kind)
-            typer.echo(rule.priority)
-            typer.echo(rule.short_name)
-            typer.echo(rule.violation_reason)
-            typer.echo("====== vars ======")
-            typer.echo(vars(rule))
-            typer.echo("-------------------------")
-            
+        typer.echo(f"subreddit author vars expanded {author.comment_karma}")
+        typer.echo(vars(author))
         # t = obj.body
     elif object_type == "redditor":
         obj = reddit.redditor(object_id)
@@ -146,43 +115,7 @@ def inspect(object_type: str, object_id: str):
 
     # typer.echo(json.dumps(json_obj, indent=4))
     
-@app.command()
-def test_widget_configuration(subreddit: str):
-    test_img_url = "https://i.redd.it/msxd2or7psld1.jpeg"
-    text_img_link_url = "https://www.reddit.com/r/vegancirclejerk/comments/1f4u1xd/carnist_has_a_son/"
-    test_communities = ['veganlobby', 'veganvets']
-    test_texts = ['Vegmod', 'Veganism Social']
-    test_urls = ['https://vegmod.com', 'https://veganism.social']
-    
-    subreddit_widgets_sidebar_delete_all(subreddit)
-    subreddit_widgets_mod_add_image_widget(subreddit, "short name (img 12)", test_img_url, text_img_link_url)
-    subreddit_widgets_mod_add_community_list(subreddit, "short name (com 12)", "description", test_communities)
-    subreddit_widgets_mod_add_button_widget(subreddit, "short name (but 12)", "description", test_texts, test_urls)
 
-@app.command()
-def image_widgets(subreddit: str):
-    widgets = reddit.subreddit(subreddit).widgets.sidebar
-    for widget in widgets:
-        if widget.kind == "image":
-            typer.echo("widget.data='{}'".format(widget.data))
-            typer.echo("widget.id='{}'".format(widget.id))
-            typer.echo("widget.kind='{}'".format(widget.kind))
-            typer.echo("widget.shortName='{}'".format(widget.shortName))
-            typer.echo("widget.styles='{}'".format(widget.styles))
-            typer.echo("widget.subreddit='{}'".format(widget.subreddit))
-            
-            index = 0
-            for image in widget:
-                typer.echo(f"image INDEX={index}")
-                typer.echo("image.url='{}'".format(image.url))
-                typer.echo("image.linkUrl='{}'".format(image.linkUrl))
-                typer.echo("image.width='{}'".format(image.width))
-                typer.echo("image.height='{}'".format(image.height))
-                index += 1
-
-@app.command()
-def refresh_widgets(subreddit: str):
-    reddit.subreddit(subreddit).widgets.refresh()
 
 def main():
     app()

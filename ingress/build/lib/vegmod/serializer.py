@@ -62,12 +62,12 @@ def _switch_case(obj, cache : Cache) -> dict:
             'function': _serialize_redditor,
             'cache_key_attribute': 'name',
         },
-        praw.models.RemovalReason: {
-            'function': _serialize_removal_reason,
-            'cache_key_attribute': None,
-        },
         praw.models.Rule: {
             'function': _serialize_rule,
+            'cache_key_attribute': None,
+        },
+        praw.models.RemovalReason: {
+            'function': _serialize_removal_reason,
             'cache_key_attribute': None,
         },
         praw.models.PollOption: {
@@ -80,62 +80,6 @@ def _switch_case(obj, cache : Cache) -> dict:
         },
         praw.models.reddit.subreddit.SubredditRedditorFlairTemplates: {
             'function': _serialize_subreddit_flair_templates,
-            'cache_key_attribute': None,
-        },
-        praw.models.ButtonWidget: {
-            'function': _serialize_button_widget,
-            'cache_key_attribute': None,
-        },
-        praw.models.Button: {
-            'function': _serialize_button,
-            'cache_key_attribute': None,
-        },
-        praw.models.Calendar: {
-            'function': _serialize_calendar,
-            'cache_key_attribute': None,
-        },
-        praw.models.CommunityList: {
-            'function': _serialize_community_list,
-            'cache_key_attribute': None,
-        },
-        praw.models.CustomWidget: {
-            'function': _serialize_custom_widget,
-            'cache_key_attribute': None,
-        },
-        praw.models.IDCard: {
-            'function': _serialize_id_card,
-            'cache_key_attribute': None,
-        },
-        praw.models.ImageWidget: {
-            'function': _serialize_image_widget,
-            'cache_key_attribute': None,
-        },
-        praw.models.ImageData: {
-            'function': _serialize_image,
-            'cache_key_attribute': None,
-        },
-        praw.models.Image: {
-            'function': _serialize_image,
-            'cache_key_attribute': None,
-        },
-        praw.models.ModeratorsWidget: {
-            'function': _serialize_moderators_widget,
-            'cache_key_attribute': None,
-        },
-        praw.models.PostFlairWidget: {
-            'function': _serialize_post_flair_widget,
-            'cache_key_attribute': None,
-        },
-        praw.models.RulesWidget: {
-            'function': _serialize_rules_widget,
-            'cache_key_attribute': None,
-        },
-        praw.models.TextArea: {
-            'function': _serialize_text_area,
-            'cache_key_attribute': None,
-        },
-        dict: {
-            'function': _serialize_dict,
             'cache_key_attribute': None,
         },
     }[type(obj)]
@@ -164,9 +108,6 @@ def _switch_case(obj, cache : Cache) -> dict:
         
     # return the serialized object
     return data
-
-def _serialize_dict(o: dict, cache : Cache = None):
-    return o
 
 def _serialize_submission(o: praw.models.Submission, cache : Cache = None):
     # https://praw.readthedocs.io/en/stable/code_overview/models/submission.html
@@ -316,139 +257,6 @@ def _serialize_subreddit_flair_templates(o: praw.models.reddit.subreddit.Subredd
     for template in o:
         templates.append(_serialize_subreddit_flair_template(template))
     return templates
-
-def _serialize_button_widget(o: praw.models.ButtonWidget, cache : Cache = None):
-    return {
-        "buttons": serialize_list(o.buttons, cache=cache),
-        "description": o.description,
-        "description_html": None, # o.description_html, # Apparently this is no longer an attribute from API
-        "id": o.id,
-        "kind": o.kind,
-        "short_name": o.shortName,
-        "styles": o.styles,
-    }
-    
-def _serialize_button(o: praw.models.Button, cache : Cache = None):
-    return {
-        "color": o.color,
-        "fill_color": o.fillColor,
-        "height": o.height if hasattr(o, "height") else None,
-        "hover_state": o.hoverState if hasattr(o, "hoverState") else None,
-        "kind": o.kind,
-        "link_url": o.linkUrl if hasattr(o, "linkUrl") else None,
-        "text": o.text,
-        "text_color": o.textColor,
-        "url": o.url,
-        "width": o.width if hasattr(o, "width") else None,
-    }
-
-def _serialize_calendar(o: praw.models.Calendar, cache : Cache = None):
-    return {
-        "configuration": o.configuration,
-        "data": o.data,
-        "id": o.id,
-        "kind": o.kind,
-        "requires_sync": o.requiresSync,
-        "short_name": o.shortName,
-        "styles": o.styles,
-    }
-
-def _serialize_community_list(o: praw.models.CommunityList, cache : Cache = None):
-    return {
-        "data": _serialize_subreddit_list(o.data, cache=cache),
-        "id": o.id,
-        "kind": o.kind,
-        "short_name": o.shortName,
-        "styles": o.styles,
-    }
-
-def _serialize_custom_widget(o: praw.models.CustomWidget, cache : Cache = None):
-    return {
-        "css": o.css,
-        "height": o.height,
-        "id": o.id,
-        "imageData": serialize_list(o.imageData, cache=cache),
-        "kind": o.kind,
-        "short_name": o.shortName,
-        "styles": o.styles,
-        "stylesheet_url": o.stylesheetUrl,
-        "text": o.text,
-        "text_html": o.textHtml,
-    }
-
-def _serialize_id_card(o: praw.models.IDCard, cache : Cache = None):
-    return {
-        "currently_viewing_count": o.currentlyViewingCount,
-        "currently_viewing_text": o.currentlyViewingText,
-        "description": o.description,
-        "id": o.id,
-        "kind": o.kind,
-        "short_name": o.shortName,
-        "styles": o.styles,
-        "subscribers_count": o.subscribersCount,
-        "subscribers_text": o.subscribersText,
-    }
-
-def _serialize_image_widget(o: praw.models.ImageWidget, cache : Cache = None):
-    return {
-        "data": serialize_list(o.data, cache=cache),
-        "id": o.id,
-        "kind": o.kind,
-        "short_name": o.shortName,
-        "styles": o.styles,
-    }
-
-def _serialize_image(o: praw.models.ImageData | praw.models.Image, cache : Cache = None):
-    return {
-        "height": o.height,
-        "link_url": o.linkUrl,
-        "url": o.url,
-        "width": o.width,
-    }
-
-def _serialize_moderators_widget(o: praw.models.ModeratorsWidget, cache : Cache = None):
-    return {
-        "id": o.id,
-        "kind": o.kind,
-        "mods": serialize_list(o.mods, cache=cache),
-        "short_name": o.shortName,
-        "styles": o.styles,
-    }
-
-def _serialize_post_flair_widget(o: praw.models.PostFlairWidget, cache : Cache = None):
-    return {
-        "display": o.display,
-        "id": o.id,
-        "kind": o.kind,
-        "order": o.order,
-        "short_name": o.shortName,
-        "styles": o.styles,
-        "templates": o.templates
-    }
-
-def _serialize_rules_widget(o: praw.models.RulesWidget, cache : Cache = None):
-    return {
-        "data": serialize_list(o.data, cache=cache),
-        "display": o.display,
-        "id": o.id,
-        "kind": o.kind,
-        "short_name": o.shortName,
-        "styles": o.styles,
-    }
-
-def _serialize_text_area(o: praw.models.TextArea, cache : Cache = None):
-    return {
-        "id": o.id,
-        "kind": o.kind,
-        "short_name": o.shortName,
-        "styles": o.styles,
-        "text": o.text,
-        "text_html": o.textHtml,
-    }
-    
-def _serialize_subreddit_list(o: list[praw.models.Subreddit], cache : Cache = None):
-    # extract ids from the list of subreddits
-    return [subreddit.id for subreddit in o]
 
 def _serialize_subreddit_flair_template(o: dict):
     return o
