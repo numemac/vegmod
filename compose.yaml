@@ -41,6 +41,10 @@ services:
     volumes:
       - ./logs:/rails/log
       - ./data:/rails/data
+      - ./backend/app:/rails/app
+      - ./backend/lib:/rails/lib
+      - ./backend/config:/rails/config
+      - ./backend/db:/rails/db
     ports:
       - "9402:9402"
     networks:
