@@ -1,4 +1,5 @@
 class Reddit::Submission < RedditRecord
+  include Externalable
   include Imageable
   include Videoable
 
@@ -9,12 +10,16 @@ class Reddit::Submission < RedditRecord
   has_many    :comments, class_name: Reddit::Comment.name, as: :parent
   has_many    :vision_labels, class_name: Reddit::VisionLabel.name, as: :context
   has_many    :praw_logs, class_name: Reddit::PrawLog.name, as: :context
+  has_many    :sidebar_votes, class_name: Reddit::SidebarVote.name, dependent: :destroy
+
+  has_one     :x, class_name: Reddit::XSubmission.name, dependent: :destroy
 
   scope :image, -> { where("url LIKE '%.jpg' OR url LIKE '%.jpeg' OR url LIKE '%.png' OR url LIKE '%.gif'") }
   scope :video, -> { where("url LIKE '%.mp4' OR url LIKE '%.webm'") }
 
   after_create :attach_image!
   after_create :attach_video!
+  after_create :create_x!
 
   after_save :subreddit_redditor_refresh_score!, if: :score_changed?
 
@@ -28,6 +33,11 @@ class Reddit::Submission < RedditRecord
 
   def self.detail_association
     :subreddit_redditor
+  end
+
+  # implements Externalable#external_url
+  def external_url
+    "https://www.reddit.com#{permalink}"
   end
 
   def extname
@@ -52,6 +62,14 @@ class Reddit::Submission < RedditRecord
 
   def video_post?
     extname.in? [".mp4", ".webm", "mpeg"]
+  end
+
+  def self_post?
+    is_self
+  end
+
+  def link_post?
+    !image_post? && !video_post? && !is_self
   end
 
   def attach_image!
@@ -81,6 +99,40 @@ class Reddit::Submission < RedditRecord
     save!
   rescue => e
     puts "Error attaching video for #{name} with url #{url}: #{e.message}"
+  end
+
+  def image_rtesseract
+    return unless image_post?
+    
+    rtesseract = vision_labels.find_by(label: "rtesseract")
+    return if rtesseract.nil?
+
+    rtesseract.value
+  end
+
+  # For Carnist-GPT
+  def chain_item
+    {
+      id: id,
+      external_id: external_id,
+      body: "#{title}\n\n#{image_rtesseract || selftext}",
+      redditor: redditor
+    }
+  end
+
+  # For Carnist-GPT
+  def chain
+    # submission has no parents
+    [chain_item]
+  end
+
+  # Helper to match the interface of Reddit::Comment
+  def submission
+    self
+  end
+
+  def create_x!
+    Reddit::XSubmission.find_or_create_by!(submission: self)
   end
 
   def self.import(subreddit, data)

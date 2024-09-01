@@ -7,6 +7,8 @@ Rails.application.routes.draw do
 
   get :inspect, to: "inspect#index"
 
+  get :metrics, to: "metrics#index"
+
   # https://edgeguides.rubyonrails.org/active_storage_overview.html#serving-files
   direct :cdn_image do |model, options|
     expires_in = options.delete(:expires_in) { ActiveStorage.urls_expire_in }

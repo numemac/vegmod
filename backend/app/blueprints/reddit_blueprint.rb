@@ -5,6 +5,10 @@ class RedditBlueprint < ApplicationBlueprint
     object.respond_to?(:imageable?) ? object.image_url : nil
   end
 
+  field :external_url do |object|
+    object.respond_to?(:externalable?) ? object.external_url : nil
+  end
+
   field :detail_label do |object, options|
     options[:depth] <= 2 ? object.detail_label : nil
   end
@@ -15,6 +19,9 @@ class RedditBlueprint < ApplicationBlueprint
   
   field :attributes do |object|
     attributes = object.attributes.except("id", "created_at", "updated_at")
+    object.class.hidden_attributes.each do |attribute|
+      attributes.delete(attribute.to_s)
+    end
     attributes.each do |key, value|
       field key do |object|
         value
@@ -51,10 +58,23 @@ class RedditBlueprint < ApplicationBlueprint
       label = "View #{count}"
   
       records = {}
-      serve_records = options[:association] == association[:name]
-      if serve_records
-        records = association[:blueprinter_class].render_as_hash(
-          object.send(association[:name]).includes(association[:klass].detail_association).order(updated_at: :desc),
+      serve_entries = options[:association] == association[:name]
+      if serve_entries
+        entries = object.send(association[:name]).order(id: :desc)
+
+        if options[:offset] && options[:limit]
+          Rails.logger.info("Offset: #{options[:offset]}")
+          Rails.logger.info("Limit: #{options[:limit]}")
+          entries = entries.offset(options[:offset]).limit(options[:limit])
+        end
+
+        if association[:klass].detail_association
+          Rails.logger.info("Including detail association: #{association[:klass].detail_association}")
+          entries = entries.includes(association[:klass].detail_association)
+        end
+
+        entries_hash = association[:blueprinter_class].render_as_hash(
+          entries,
           **options.merge(depth: options[:depth] + 1)
         )
       end
@@ -66,10 +86,22 @@ class RedditBlueprint < ApplicationBlueprint
           href:  object.href(association: association[:name]),
           model: association[:model],
           count: count,
-          records: records
+          records: entries_hash
         }
       ]
     }.to_h
+  end
+
+  field :metrics do |object, options|
+    metrics = options[:depth] && options[:depth] == 1 ? object.metrics : []
+    metrics.map { |metric|
+      { 
+        measure: metric.measure,
+        unit: metric.unit,
+        interval: metric.interval,
+        data_points: options[:metric] == metric ? (Metrics::MetricSubject.find_by(subject: object, metric: metric)&.data_points || []) : []
+      }
+    }
   end
 
 end

@@ -9,6 +9,11 @@ class Reddit::RemovalReason < RedditRecord
     message&.truncate(30, omission: "...")
   end
 
+  # implements Externalable#external_url
+  def external_url
+    "https://www.reddit.com/r/#{subreddit.display_name}/about/removal"
+  end
+
   def self.import(subreddit, data)
     return if data["id"].nil?
 

@@ -1,4 +1,6 @@
 class Reddit::FlairTemplate < RedditRecord
+  include Externalable
+
   belongs_to :subreddit, class_name: Reddit::Subreddit.name
 
   # "allowable_content": "text",
@@ -25,6 +27,11 @@ class Reddit::FlairTemplate < RedditRecord
 
   def detail_label
     external_id
+  end
+
+  # implements Externalable#external_url
+  def external_url
+    "https://www.reddit.com/mod/#{subreddit.display_name}/userflair"
   end
 
   def self.import(subreddit, data)

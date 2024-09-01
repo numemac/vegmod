@@ -78,4 +78,9 @@ class Praw::Comment
     @praw.comment_reply(@id, body)
   end
 
+  def reply_distinguish_lock(body, how='yes', sticky=false)
+    Reddit::PrawLog.create!(action: "reply_distinguish_lock", context: @comment)
+    @praw.comment_reply_distinguish_lock(@id, body, how, sticky)
+  end
+
 end

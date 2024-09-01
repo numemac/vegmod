@@ -14,8 +14,14 @@ class RedditInfoRemovalPlugin < Plugin
   end
 
   # e.g. "so, u/username said 'I'm vegan'"
-  def self.contains_user?(text)
-    text.match?(/\bu\/\w{3,}\b/)
+  def self.contains_user?(text, redditor_name)
+    # this covers all incidences of u/<any username>
+    # and also the case where the redditor's name is mentioned in the text
+    text.match?(/\bu\/\w{3,}\b/) || text.include?(redditor_name || "REDDITOR_NAME")
+  end
+
+  def self.removal_reason(subreddit)
+    subreddit.search_removal_reason("personal")
   end
 
   def self.remove_reddit_info(vision_label)
@@ -27,20 +33,22 @@ class RedditInfoRemovalPlugin < Plugin
     subreddit = submission.subreddit
     return unless subreddit.display_name.downcase.in?(subreddits)
 
-    return unless contains_subreddit?(vision_label.value) || contains_user?(vision_label.value)
+    return unless contains_subreddit?(vision_label.value) || contains_user?(vision_label.value, submission&.redditor&.name)
+
+    # Remove the submission from Reddit.
+    # Note: This will only work if the Reddit user has the necessary permissions.
 
     # Omit personal & subreddit information. 
-    removal_reason = subreddit.search_removal_reason("personal")
-    if removal_reason.nil?
-      Rails.logger.error "Removal reason 'personal' not found as substring for subreddit #{subreddit.label} reasons"
-      return
-    end
+    removal_reason = removal_reason(subreddit)
+    return unless removal_reason.present?
 
     submission.praw.remove(
       "Reddit info removal / '#{vision_label.app_url}'.",
       false,
       removal_reason.external_id
     )
+
+    submission.praw.send_removal_message(removal_reason.message)
   rescue => e
     Rails.logger.error "Error removing reddit info from submission #{submission.id}"
     Rails.logger.error "Error class: #{e.class}"

@@ -236,7 +236,11 @@ namespace :import do
     data = JSON.parse(File.read("/rails/data/ingress/ingress.json"))
     for subreddit_data in data.values
       subreddit = Reddit::Subreddit.import(subreddit_data)
-      Rails.logger.info "Imported subreddit #{subreddit.display_name}"
+      if subreddit.nil?
+        Rails.logger.error "Failed to import subreddit #{subreddit_data['display_name']}"
+      else
+        Rails.logger.info "Imported subreddit #{subreddit.display_name}"
+      end
     end
   end
 end

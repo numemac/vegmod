@@ -1,6 +1,7 @@
 require 'open-uri'
 
 class Reddit::Redditor < RedditRecord
+  include Externalable
   include Imageable
 
   has_many :subreddit_redditors, class_name: Reddit::SubredditRedditor.name
@@ -58,6 +59,53 @@ class Reddit::Redditor < RedditRecord
     File.extname(icon_img).downcase
   rescue
     ""
+  end
+
+  # implements Externalable#external_url
+  def external_url
+    "https://www.reddit.com/u/#{name}"
+  end
+
+  def score
+    subreddit_redditors.sum(:score) || 0
+  end
+
+  def score_report
+    total = 0
+    str = "**Your karma, counted since August 2024:**\n\n"
+    str += "---\n"
+    # subreddit_redditors.each do |sr|
+    #   str += "- #{sr.subreddit.label}: #{sr.score} karma\n"
+    #   total += sr.score
+    # end
+    karma_counts = subreddit_redditors.map do |sr|
+      [sr.subreddit, sr.score]
+    end
+    karma_counts.sort_by! { |subreddit, score| subreddit.display_name.downcase }
+    karma_counts.each do |subreddit, score|
+      str += "- #{subreddit.label}: #{score} karma\n"
+      total += score
+    end
+    str += "---\n\n"
+    str += "Total: #{total} karma"
+    return str
+  end
+
+  def bot?
+    return true if name.downcase.end_with?("bot")
+    return true if name.downcase.end_with?("-modteam")
+    return true if name.downcase == "automoderator"
+    return true if ENV["REDDIT_USERNAME"] == name
+    return false
+  end
+
+  def self.hidden_attributes
+    [
+      :icon_img,
+      :is_employee,
+      :is_mod,
+      :is_gold,
+    ]
   end
 
   def self.import(subreddit, data)

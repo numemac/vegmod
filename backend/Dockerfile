@@ -2,7 +2,7 @@
 
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version and Gemfile
 ARG RUBY_VERSION=3.3.4
-FROM registry.docker.com/library/ruby:$RUBY_VERSION-slim as base
+FROM registry.docker.com/library/ruby:$RUBY_VERSION-bookworm as base
 
 # Rails app lives here
 WORKDIR /rails
@@ -18,7 +18,7 @@ COPY sources.list /etc/apt/sources.list
 
 # Install python, tesseract-ocr and the vegmod pip package
 RUN apt-get update && apt-get install -y python3 python3-pip avahi-utils tesseract-ocr
-RUN pip3 install vegmod --break-system-packages
+RUN pip3 install vegmod==1.0.16 --break-system-packages
 
 # Throw-away build stage to reduce size of final image
 FROM base as build

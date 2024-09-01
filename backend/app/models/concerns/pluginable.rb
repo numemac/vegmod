@@ -33,7 +33,7 @@ module Pluginable
     define_singleton_method :plugin do |_plugin, callback, _callback|
       self.plugins[callback] ||= []
       self.plugins[callback] << { plugin: _plugin, callback: _callback, model_class: self }
-      Rails.logger.info "Plugin #{_plugin.name} registered to #{self.name} for #{callback}"
+      # Rails.logger.info "Plugin #{_plugin.name} registered to #{self.name} for #{callback}"
     end
   end
 

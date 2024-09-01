@@ -1,5 +1,6 @@
 class RedditRecord < ApplicationRecord
   include Inspectable
+  include Metricable
   include Pluginable
 
   self.abstract_class = true
@@ -37,14 +38,6 @@ class RedditRecord < ApplicationRecord
     end
   end
 
-  def self.model
-    self.name.underscore.downcase.pluralize
-  end
-
-  def model
-    self.class.model
-  end
-
   def href(association: nil)
     {
       pathname: '/inspect',
@@ -62,23 +55,6 @@ class RedditRecord < ApplicationRecord
     else
       "#{ENV['RAILS_HOST']}/inspect?model=#{model}&id=#{id}"
     end
-  end
-
-  def self.blueprinter_class
-    "#{self.name}Blueprint".constantize
-  end
-  
-  def blueprinter_class
-    "#{self.class.name}Blueprint".constantize
-  end
-
-  # override the default as_json method to use blueprinter
-  def as_json(options = {})
-    blueprinter_class.render_as_hash(self, options)
-  end
-
-  def as_hash(options = {})
-    blueprinter_class.render_as_hash(self, options)
   end
 
   def self.has_many_associations
@@ -111,6 +87,10 @@ class RedditRecord < ApplicationRecord
         name: association.name,
       }
     }
+  end
+
+  def self.hidden_attributes
+    []
   end
 
 end

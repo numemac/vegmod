@@ -1,9 +1,11 @@
 class Reddit::Comment < RedditRecord
+  include Externalable
   include Imageable
 
   belongs_to  :subreddit_redditor, class_name: Reddit::SubredditRedditor.name
   has_one     :subreddit, class_name: Reddit::Subreddit.name, through: :subreddit_redditor
   has_one     :redditor, class_name: Reddit::Redditor.name, through: :subreddit_redditor
+  has_one     :x, class_name: Reddit::XComment.name, dependent: :destroy
 
   belongs_to  :parent, polymorphic: true, optional: true
 
@@ -14,6 +16,10 @@ class Reddit::Comment < RedditRecord
     subreddit_redditor.refresh_score!
   end
 
+  after_create do
+    create_x!
+  end
+
   def label
     body
   end
@@ -22,16 +28,62 @@ class Reddit::Comment < RedditRecord
     :subreddit_redditor
   end
 
+  # implements Imageable#image
   def image
     redditor&.image
   end
 
+  # implements Imageable#image_url
   def image_url
     redditor&.image_url
   end
 
+  # implements Externalable#external_url
+  def external_url
+    "https://www.reddit.com#{permalink}"
+  end
+
   def praw
     Praw::Comment.new(self)
+  end
+
+  # For Carnist-GPT
+  def chain_item
+    {
+      id: id,
+      external_id: external_id,
+      body: body,
+      redditor: redditor
+    }
+  end
+
+  # For Carnist-GPT
+  def chain
+    if parent
+      parent.chain + [chain_item]
+    else
+      [chain_item]
+    end
+  end
+
+  # This is a recursive function that will return the submission that this comment belongs to.
+  # It will keep going up the chain of parents until it finds a submission.
+  # Don't use it excessively, as it will make a lot of database queries.
+  def submission
+    p = parent
+    if p.is_a? Reddit::Submission
+      p
+    elsif p.is_a? Reddit::Comment
+      p.submission
+    elsif p.nil?
+      nil
+    else
+      raise "Unknown parent type: #{p.class}"
+    end
+  end
+
+  def create_x!
+    Reddit::XComment.find_or_create_by!(comment: self)
   end
 
   def self.import(subreddit, data)

@@ -6,6 +6,7 @@ class Reddit::SubredditRedditor < RedditRecord
 
   has_many :submissions, class_name: Reddit::Submission.name, dependent: :destroy
   has_many :comments, class_name: Reddit::Comment.name, dependent: :destroy
+  has_many :sidebar_votes, class_name: Reddit::SidebarVote.name, dependent: :destroy
 
   def label
     redditor_label = redditor&.label || "[deleted]"
@@ -13,7 +14,11 @@ class Reddit::SubredditRedditor < RedditRecord
   end
 
   def detail_label
-    "#{score} subreddit karma"
+    "#{formatted_score} subreddit karma"
+  end
+
+  def formatted_score
+    score.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse
   end
 
   def image

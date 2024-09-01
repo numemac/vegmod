@@ -32,6 +32,8 @@ class ScreenshotRemovalPlugin < Plugin
     return unless vision_label.context_type == Reddit::Submission.name
 
     submission = vision_label.context
+    return if submission&.x&.bot_disabled
+
     subreddit = submission.subreddit
     return unless subreddit.display_name.downcase.in?(subreddits)
 
