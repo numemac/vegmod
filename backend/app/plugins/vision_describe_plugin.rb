@@ -1,4 +1,4 @@
-class VisionDescribePlugin < Plugin
+class VisionDescribePlugin < OldPlugin
   Reddit::Submission.plugin self, :after_commit, :describe_image
 
   def self.describe_image(submission)

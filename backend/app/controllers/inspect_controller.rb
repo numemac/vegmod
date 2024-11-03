@@ -6,22 +6,29 @@ class InspectController < ApplicationController
     association = params[:association]
     current_page = params[:page] || 1
     per_page = params[:per_page] || 10
+    search = params[:search] || ""
     measure = params[:measure] || nil
     unit = params[:unit] || nil
     interval = params[:interval] || nil
+    changed = params[:changed] || nil
   
     offset = (current_page.to_i - 1) * per_page.to_i
 
     unless id&.present?
-      all_entries = model_class.all
+      all_entries = search.present? ? model_class.full_text_search(search) : model_class.all
       total_entries = all_entries.count
       total_pages = (total_entries.to_f / per_page.to_f).ceil
+      if current_page.to_i > total_pages
+        current_page = [total_pages, 1].max
+        offset = (current_page.to_i - 1) * per_page.to_i
+      end
       paginated_entries = all_entries.order(id: :desc).offset(offset).limit(per_page)
       pagination = {
         current_page: current_page,
         total_pages: total_pages,
         total_entries: total_entries,
         per_page: per_page,
+        search: search
       }
 
       render json: {
@@ -30,7 +37,7 @@ class InspectController < ApplicationController
         entries: model_class.blueprinter_class.render_as_hash(paginated_entries, options),
         model: model_class.model,
         pagination: pagination,
-        models: model_mappings.keys
+        models: model_mappings(web_indexable: true).keys
       }
       return
     end
@@ -45,22 +52,50 @@ class InspectController < ApplicationController
     record_query = model_class.where(id: id).includes(association ? association[:name] : nil)
     record = record_query.first
 
-    all_entries = association ? record.send(association[:name]) : model_class.where(id: id).order(id: :desc)
+    all_entries = association ? (
+      search.present? ? (
+        association[:klass].where(
+          id: record.send(association[:name])
+        ).full_text_search(search)
+      ) : record.send(association[:name])
+    ) : model_class.where(id: id).order(id: :desc)
+    options[:association_entries] = all_entries
+
     total_entries = all_entries.count
     total_pages = (total_entries.to_f / per_page.to_f).ceil
+    if current_page.to_i > total_pages
+      current_page = [total_pages, 1].max
+      offset = (current_page.to_i - 1) * per_page.to_i
+    end
     pagination = {
       current_page: current_page,
       total_pages: total_pages,
       total_entries: total_entries,
       per_page: per_page,
+      search: search
     }
 
     options[:offset] = offset
     options[:limit] = per_page
 
-    if measure && unit && interval
-      options[:metric] = record.metrics.where(measure: measure, unit: unit, interval: interval).first
-    else
+    if measure.present? && unit.present? && interval.present?
+      Rails.logger.info "using custom metric"
+      options[:metric] = record.metrics.where(measure: measure, unit: unit, interval: interval)&.first
+      if options[:metric].nil?
+        if changed.present?
+          if changed == "measure"
+            options[:metric] = record.metrics.where(measure: measure)&.first
+          elsif changed == "unit"
+            options[:metric] = record.metrics.where(unit: unit)&.first
+          elsif changed == "interval"
+            options[:metric] = record.metrics.where(interval: interval)&.first
+          end
+        end
+      end
+    end
+
+    if options[:metric].nil?
+      Rails.logger.info "using default metric"
       options[:metric] = record.default_metric || nil
     end
   
@@ -72,35 +107,21 @@ class InspectController < ApplicationController
       id: id,
       model: model_class.model,
       pagination: pagination,
-      models: model_mappings.keys
+      models: model_mappings(web_indexable: true).keys
     }
   end
 
   private
 
-  def model_mappings
-    {
-      "reddit/comments" =>              Reddit::Comment,
-      "reddit/flair_templates" =>       Reddit::FlairTemplate,
-      "reddit/redditors" =>             Reddit::Redditor,
-      "reddit/removal_reasons" =>       Reddit::RemovalReason,
-      "reddit/reports" =>               Reddit::Report,
-      "reddit/submissions" =>           Reddit::Submission,
-      "reddit/subreddit_redditors" =>   Reddit::SubredditRedditor,
-      "reddit/subreddits" =>            Reddit::Subreddit,
-      "reddit/rules" =>                 Reddit::Rule,
-      "reddit/vision_labels" =>         Reddit::VisionLabel,
-      "reddit/praw_logs" =>             Reddit::PrawLog,
-      "reddit/sidebar_votes" =>         Reddit::SidebarVote,
-      "reddit/x_comments" =>            Reddit::XComment,
-      "reddit/x_submissions" =>         Reddit::XSubmission,
-      "reddit/widgets" =>               Reddit::Widget,
-      "reddit/button_widgets" =>        Reddit::ButtonWidget,
-      "reddit/image_widgets" =>         Reddit::ImageWidget,
-      "reddit/community_lists" =>       Reddit::CommunityList,
-      "reddit/images" =>                Reddit::Image,
-      "reddit/widget_styles" =>         Reddit::WidgetStyle,
-      
+  def model_mappings(web_indexable: false)
+    [ Reddit::Comment, Reddit::FlairTemplate, Reddit::Redditor, Reddit::RemovalReason, Reddit::Report, Reddit::Submission, Reddit::SubredditRedditor, Reddit::Subreddit, Reddit::Rule, Reddit::VisionLabel, Reddit::PrawLog, Reddit::SidebarVote, Reddit::XComment, Reddit::XSubmission, Reddit::Widget, Reddit::ButtonWidget, Reddit::ImageWidget, Reddit::CommunityList, Reddit::Image, Reddit::WidgetStyle ].select {
+      |m|
+      web_indexable ? m.respond_to?(:web_indexable?) && m.web_indexable? : true  
+    }.inject({}) {
+      |h, m|
+      model_name = m.name.split("::").last.underscore.downcase.pluralize
+      h["reddit/#{model_name}"] = m
+      h
     }
   end
 
@@ -108,7 +129,7 @@ class InspectController < ApplicationController
     if model_mappings.has_key?(params[:model])
       return model_mappings[params[:model]]
     else
-      raise "Unknown model #{params[:model]}"
+      raise "Unknown model #{params[:model]}, models: #{model_mappings.keys}"
     end
   end
 

@@ -1,4 +1,4 @@
-class Plugin
+class OldPlugin
   def self.active_record_callbacks
     [
       :after_create,

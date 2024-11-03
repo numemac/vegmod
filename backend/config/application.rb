@@ -28,5 +28,14 @@ module Backend
       config.autoload_paths << Rails.root.join(path)
       config.eager_load_paths << Rails.root.join(path)
     end
+
+    config.action_mailer.smtp_settings = {
+      address: 'smtp.mailgun.org',
+      port: 587,
+      domain: 'mg.vegmod.com',
+      authentication: 'plain',
+      user_name: 'postmaster@mg.vegmod.com',
+      password: 'd95b68c860a07f1e00ca4a4e60e9f001-5dcb5e36-da13c68b'
+    }
   end
 end

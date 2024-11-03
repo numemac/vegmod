@@ -6,10 +6,6 @@ class Reddit::Report < RedditRecord
     "Reported: #{content.label}"
   end
 
-  def detail_label
-    created_at.strftime("%Y-%m-%d %H:%M:%S")
-  end
-
   def self.import(subreddit, data)
     return if data["id"].nil?
     return if data["_type"].nil?

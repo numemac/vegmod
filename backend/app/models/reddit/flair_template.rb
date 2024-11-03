@@ -25,10 +25,6 @@ class Reddit::FlairTemplate < RedditRecord
     text
   end
 
-  def detail_label
-    external_id
-  end
-
   # implements Externalable#external_url
   def external_url
     "https://www.reddit.com/mod/#{subreddit.display_name}/userflair"

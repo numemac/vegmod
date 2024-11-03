@@ -1,4 +1,4 @@
-class ScoreReportPlugin < Plugin
+class ScoreReportPlugin < OldPlugin
   Reddit::Comment.plugin self, :after_create, :reply_to_comment
 
   def self.subreddits

@@ -1,12 +1,10 @@
 class Reddit::RemovalReason < RedditRecord
   belongs_to :subreddit, class_name: Reddit::Subreddit.name
 
+  scope :full_text_search, ->(query) { where("title ILIKE ?", "%#{query}%") }
+
   def label
     title
-  end
-
-  def detail_label
-    message&.truncate(30, omission: "...")
   end
 
   # implements Externalable#external_url

@@ -19,6 +19,7 @@ module Censor
     "booty",
     "sexy",
     "pussy",
-    "vagina"
+    "vagina",
+    "whore"
   ]
 end

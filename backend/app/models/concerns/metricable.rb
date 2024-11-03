@@ -34,6 +34,7 @@ module Metricable
     has_many :metrics, through: :metric_subjects, class_name: Metrics::Metric.name, dependent: :destroy
 
     scope :active_week, -> { where(updated_at: 1.week.ago..Time.current) }
+    scope :created_week, -> { where(created_at: 1.week.ago..Time.current) }
 
     Metricable::intervals.each do |measure_unit|
       interval_scope measure_unit[:scope_name], -> {

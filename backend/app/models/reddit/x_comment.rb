@@ -5,8 +5,4 @@ class Reddit::XComment < RedditRecord
     "X #{comment.label }"
   end
 
-  def detail_label
-    comment.detail_label
-  end
-
 end

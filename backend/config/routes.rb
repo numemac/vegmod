@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  devise_for :users, defaults: { format: :json }
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
@@ -6,8 +7,14 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
   get :inspect, to: "inspect#index"
+  get :fetch,   to: "fetch#index"
+  get :session, to: "session#index"
 
   get :metrics, to: "metrics#index"
+
+  resources :subreddit_plugins, only: [:create, :update, :destroy]
+
+  resources :users, only: [:update]
 
   # https://edgeguides.rubyonrails.org/active_storage_overview.html#serving-files
   direct :cdn_image do |model, options|

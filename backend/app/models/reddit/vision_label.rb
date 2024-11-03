@@ -9,10 +9,6 @@ class Reddit::VisionLabel < RedditRecord
     self[:label]
   end
 
-  def detail_label
-    value
-  end
-
   def image
     context&.image
   end

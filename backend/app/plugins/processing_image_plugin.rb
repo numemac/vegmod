@@ -1,4 +1,4 @@
-class ProcessingImagePlugin < Plugin
+class ProcessingImagePlugin < OldPlugin
   Reddit::Image.plugin self, :after_commit, :ensure_processed
 
   def self.ensure_processed(image)

@@ -1,4 +1,4 @@
-class ScreenshotRemovalPlugin < Plugin
+class ScreenshotRemovalPlugin < OldPlugin
   Reddit::VisionLabel.plugin self, :after_commit, :remove_screenshot
 
   def self.subreddits
@@ -20,7 +20,8 @@ class ScreenshotRemovalPlugin < Plugin
     trigger_terms = [
       "text message",
       "text conversation",
-      "text chat"
+      "text chat",
+      "twitter feed",
     ]
 
     trigger_terms.any? { |term| description.include?(term) }
@@ -50,6 +51,8 @@ class ScreenshotRemovalPlugin < Plugin
       false,
       removal_reason.external_id
     )
+
+    submission.praw.send_removal_message(removal_reason.message)
   rescue => e
     Rails.logger.error "Error removing screenshot from submission #{submission.id}"
     Rails.logger.error "Error class: #{e.class}"

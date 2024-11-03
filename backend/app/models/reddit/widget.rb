@@ -5,13 +5,10 @@ class Reddit::Widget < RedditRecord
   has_one :image_widget, class_name: Reddit::ImageWidget.name, dependent: :destroy
   has_one :button_widget, class_name: Reddit::ButtonWidget.name, dependent: :destroy
   has_one :community_list, class_name: Reddit::CommunityList.name, dependent: :destroy
+  has_one :text_area, class_name: Reddit::TextArea.name, dependent: :destroy
 
   def label
     return self.short_name
-  end
-
-  def detail_label
-    return self.kind
   end
 
   def self.import(subreddit, data, order)
@@ -38,6 +35,8 @@ class Reddit::Widget < RedditRecord
       Reddit::ButtonWidget.import(widget, data)
     elsif widget.kind == "community-list"
       Reddit::CommunityList.import(widget, data)
+    elsif widget.kind == "textarea"
+      Reddit::TextArea.import(widget, data)
     end
 
     return widget

@@ -5,8 +5,4 @@ class Reddit::XSubmission < RedditRecord
     "X #{submission.label }"
   end
 
-  def detail_label
-    submission.detail_label
-  end
-
 end

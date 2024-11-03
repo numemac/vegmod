@@ -1,4 +1,4 @@
-class KarmaRequirementPlugin < Plugin
+class KarmaRequirementPlugin < OldPlugin
   Reddit::Comment.plugin    self, :after_create, :evaluate_contribution
   Reddit::Submission.plugin self, :after_create, :evaluate_contribution
 
@@ -10,40 +10,29 @@ class KarmaRequirementPlugin < Plugin
     10
   end
 
-  def self.removal_reason(subreddit)
-    subreddit.search_removal_reason("karma")
-  end
-
   def self.violation?(redditor)
     return false if redditor.nil?
     return false if redditor.bot?
 
     # Actually uses the score from all subreddits
     # but still guide people to VCJ to build it
-    return redditor.score < score_required
-  end
-
-  def self.removal_message(removal_reason, redditor)
-    message = removal_reason.message
-    score_report = redditor&.score_report
-    message += "\n\n#{score_report}" if score_report.present?
-    message
+    return redditor.x.non_adversarial_score < score_required
   end
 
   def self.remove_contribution(contribution, subreddit, redditor)
-    removal_reason = removal_reason(subreddit)
+    removal_reason = subreddit.search_removal_reason("karma")
     return unless removal_reason.present?
   
     contribution.praw.remove("Insufficient karma.", false, removal_reason.external_id)
     contribution.praw.send_removal_message(
-      removal_message(removal_reason, redditor)
+      [
+        "Your submission has been removed because you do not meet the karma requirements for this subreddit.",
+        "Please participate in other vegan subreddits to build up your karma and try again later."
+      ].join("\n\n")
     )
   end
 
   def self.evaluate_contribution(contribution)
-    disabled = true # waiting for more karma to be tracked
-    return if disabled
-
     return unless contribution.present?
 
     subreddit = contribution.subreddit

@@ -1,8 +1,0 @@
-deb http://mirror.csclub.uwaterloo.ca/debian/ bookworm main
-deb-src http://mirror.csclub.uwaterloo.ca/debian/ bookworm main
-
-deb http://security.debian.org/debian-security/ bookworm-security main
-deb-src http://security.debian.org/debian-security/ bookworm-security main
-
-deb http://mirror.csclub.uwaterloo.ca/debian/ bookworm-updates main
-deb-src http://mirror.csclub.uwaterloo.ca/debian/ bookworm-updates main

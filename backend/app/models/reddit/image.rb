@@ -2,18 +2,13 @@ class Reddit::Image < RedditRecord
   include Externalable
 
   belongs_to :image_widget, class_name: Reddit::ImageWidget.name
+  has_one :widget, through: :image_widget, class_name: Reddit::Widget.name
   has_one :subreddit, through: :image_widget, class_name: Reddit::Subreddit.name
 
   def label
     # get the host of the url
     uri = URI.parse(self.url)
     return uri.host
-  end
-
-  def detail_label
-    # get the path of the url
-    uri = URI.parse(self.url)
-    return uri.path
   end
 
   # helps with a long-standing reddit glitch where the image

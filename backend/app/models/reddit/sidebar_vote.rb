@@ -39,14 +39,6 @@ class Reddit::SidebarVote < RedditRecord
     "#{redditor.label}'s vote"
   end
 
-  def detail_label
-    "Voted for #{submission.label}"
-  end
-
-  def self.detail_association
-    :submission
-  end
-
   def external_url
     submission.external_url
   end

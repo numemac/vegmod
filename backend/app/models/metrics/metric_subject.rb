@@ -3,4 +3,8 @@ class Metrics::MetricSubject < MetricRecord
   belongs_to :subject, polymorphic: true, optional: false
 
   has_many :data_points, class_name: Metrics::MetricSubjectDataPoint.name, dependent: :destroy
+
+  def self.always_include
+    [:metric]
+  end
 end

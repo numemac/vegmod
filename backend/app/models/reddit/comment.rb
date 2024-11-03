@@ -1,6 +1,7 @@
 class Reddit::Comment < RedditRecord
   include Externalable
   include Imageable
+  include WebIndexable
 
   belongs_to  :subreddit_redditor, class_name: Reddit::SubredditRedditor.name
   has_one     :subreddit, class_name: Reddit::Subreddit.name, through: :subreddit_redditor
@@ -12,20 +13,20 @@ class Reddit::Comment < RedditRecord
   has_many    :comments, class_name: Reddit::Comment.name, as: :parent
   has_many    :praw_logs, class_name: Reddit::PrawLog.name, as: :context
 
-  after_save do
-    subreddit_redditor.refresh_score!
-  end
+  scope       :full_text_search, ->(query) { where("body ILIKE ?", "%#{query}%") }
 
   after_create do
     create_x!
+    subreddit_redditor.update!(last_contributed_at: created_at)
+    subreddit_redditor.refresh_score!
+  end
+
+  after_save do
+    subreddit_redditor.refresh_score! if saved_change_to_score?
   end
 
   def label
     body
-  end
-
-  def self.detail_association
-    :subreddit_redditor
   end
 
   # implements Imageable#image
@@ -84,6 +85,10 @@ class Reddit::Comment < RedditRecord
 
   def create_x!
     Reddit::XComment.find_or_create_by!(comment: self)
+  end
+
+  def self.always_include
+    [:redditor]
   end
 
   def self.import(subreddit, data)

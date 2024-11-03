@@ -1,4 +1,4 @@
-class RtesseractPlugin < Plugin
+class RtesseractPlugin < OldPlugin
   Reddit::Submission.plugin self, :after_commit, :extract_text
 
   def self.clean_text(text)

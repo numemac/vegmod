@@ -2,37 +2,37 @@ class Reddit::Submission < RedditRecord
   include Externalable
   include Imageable
   include Videoable
+  include WebIndexable
 
   belongs_to  :subreddit_redditor, class_name: Reddit::SubredditRedditor.name
   has_one     :subreddit, class_name: Reddit::Subreddit.name, through: :subreddit_redditor
   has_one     :redditor, class_name: Reddit::Redditor.name, through: :subreddit_redditor
+  has_one     :x, class_name: Reddit::XSubmission.name, dependent: :destroy
 
   has_many    :comments, class_name: Reddit::Comment.name, as: :parent
   has_many    :vision_labels, class_name: Reddit::VisionLabel.name, as: :context
   has_many    :praw_logs, class_name: Reddit::PrawLog.name, as: :context
   has_many    :sidebar_votes, class_name: Reddit::SidebarVote.name, dependent: :destroy
 
-  has_one     :x, class_name: Reddit::XSubmission.name, dependent: :destroy
-
   scope :image, -> { where("url LIKE '%.jpg' OR url LIKE '%.jpeg' OR url LIKE '%.png' OR url LIKE '%.gif'") }
   scope :video, -> { where("url LIKE '%.mp4' OR url LIKE '%.webm'") }
 
-  after_create :attach_image!
-  after_create :attach_video!
-  after_create :create_x!
+  scope :full_text_search, ->(query) { where("title ILIKE :query OR selftext ILIKE :query", query: "%#{query}%") }
 
-  after_save :subreddit_redditor_refresh_score!, if: :score_changed?
-
-  def subreddit_redditor_refresh_score!
+  after_create do
+    create_x!
+    subreddit_redditor.update!(last_contributed_at: created_at)
     subreddit_redditor.refresh_score!
+    attach_image!
+    attach_video!
+  end
+
+  after_save do  
+    subreddit_redditor.refresh_score! if saved_change_to_score?
   end
 
   def label
     title
-  end
-
-  def self.detail_association
-    :subreddit_redditor
   end
 
   # implements Externalable#external_url
@@ -133,6 +133,18 @@ class Reddit::Submission < RedditRecord
 
   def create_x!
     Reddit::XSubmission.find_or_create_by!(submission: self)
+  end
+
+  def self.always_include
+    [:redditor, :subreddit, :vision_labels]
+  end
+
+  def self.computed_fields
+    [:image_url]
+  end
+
+  def self.fetch_column
+    :external_id
   end
 
   def self.import(subreddit, data)

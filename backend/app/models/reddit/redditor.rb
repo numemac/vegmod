@@ -3,20 +3,25 @@ require 'open-uri'
 class Reddit::Redditor < RedditRecord
   include Externalable
   include Imageable
+  include WebIndexable
 
-  has_many :subreddit_redditors, class_name: Reddit::SubredditRedditor.name
-  has_many :subreddits, class_name: Reddit::Subreddit.name, through: :subreddit_redditors
-  has_many :submissions, class_name: Reddit::Submission.name, through: :subreddit_redditors
-  has_many :comments, class_name: Reddit::Comment.name, through: :subreddit_redditors
+  has_many    :subreddit_redditors, class_name: Reddit::SubredditRedditor.name
+  has_many    :subreddits, class_name: Reddit::Subreddit.name, through: :subreddit_redditors
+  has_many    :submissions, class_name: Reddit::Submission.name, through: :subreddit_redditors
+  has_many    :comments, class_name: Reddit::Comment.name, through: :subreddit_redditors
+  has_one     :x, class_name: Reddit::XRedditor.name, dependent: :destroy
+  has_many    :user_redditors, class_name: UserRedditor.name, dependent: :destroy
+  has_many    :users, class_name: User.name, through: :user_redditors
 
-  after_create :attach_icon!
+  after_create do
+    create_x!
+    attach_icon!
+  end
+
+  scope :full_text_search, ->(query) { where("name ILIKE ?", "%#{query}%") }
 
   def label
     "u/#{name}"
-  end
-
-  def detail_label
-    "Redditor since #{created}"
   end
 
   def created
@@ -25,6 +30,10 @@ class Reddit::Redditor < RedditRecord
     else
       Time.at(created_utc).strftime("%B %d, %Y")
     end
+  end
+
+  def create_x!
+    Reddit::XRedditor.find_or_create_by!(redditor: self)
   end
 
   def attach_icon!
@@ -67,7 +76,15 @@ class Reddit::Redditor < RedditRecord
   end
 
   def score
-    subreddit_redditors.sum(:score) || 0
+    x.score || 0
+  end
+
+  def non_adversarial_score
+    x.non_adversarial_score || 0
+  end 
+
+  def adversarial_score
+    x.adversarial_score || 0
   end
 
   def score_report
@@ -97,6 +114,18 @@ class Reddit::Redditor < RedditRecord
     return true if name.downcase == "automoderator"
     return true if ENV["REDDIT_USERNAME"] == name
     return false
+  end
+
+  def self.fetch_column
+    :name
+  end
+
+  def self.computed_fields
+    [:image_url]
+  end
+
+  def self.always_include
+    [:x]
   end
 
   def self.hidden_attributes

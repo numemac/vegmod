@@ -1,12 +1,10 @@
 class Reddit::Rule < RedditRecord
   belongs_to :subreddit, class_name: Reddit::Subreddit.name
 
+  scope :full_text_search, ->(query) { where("short_name ILIKE ?", "%#{query}%") }
+
   def label
     short_name
-  end
-
-  def detail_label
-    description
   end
 
   def self.import(subreddit, data)

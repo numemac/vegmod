@@ -1,4 +1,4 @@
-class SidebarVotePlugin < Plugin
+class SidebarVotePlugin < OldPlugin
   Reddit::Comment.plugin self, :after_create, :record_vote
 
   def self.subreddits

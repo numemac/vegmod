@@ -1,4 +1,4 @@
-class RedditInfoRemovalPlugin < Plugin
+class RedditInfoRemovalPlugin < OldPlugin
   Reddit::VisionLabel.plugin self, :after_commit, :remove_reddit_info
 
   def self.subreddits
@@ -20,10 +20,6 @@ class RedditInfoRemovalPlugin < Plugin
     text.match?(/\bu\/\w{3,}\b/) || text.include?(redditor_name || "REDDITOR_NAME")
   end
 
-  def self.removal_reason(subreddit)
-    subreddit.search_removal_reason("personal")
-  end
-
   def self.remove_reddit_info(vision_label)
     return unless vision_label.present?
     return unless vision_label.label == "rtesseract"
@@ -39,8 +35,11 @@ class RedditInfoRemovalPlugin < Plugin
     # Note: This will only work if the Reddit user has the necessary permissions.
 
     # Omit personal & subreddit information. 
-    removal_reason = removal_reason(subreddit)
-    return unless removal_reason.present?
+    removal_reason = subreddit.search_removal_reason("personal")
+    if removal_reason.nil?
+      Rails.logger.error "Removal reason 'personal' not found as substring for subreddit #{subreddit.label} reasons"
+      return
+    end
 
     submission.praw.remove(
       "Reddit info removal / '#{vision_label.app_url}'.",

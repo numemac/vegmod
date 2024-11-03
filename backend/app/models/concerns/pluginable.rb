@@ -8,7 +8,7 @@ module Pluginable
     class_attribute :plugins
     self.plugins = {}
 
-    Plugin.active_record_callbacks.each do |callback|
+    OldPlugin.active_record_callbacks.each do |callback|
       send(callback) do
         self.class.plugins[callback].to_a.select { |p| p[:model_class] == self.class }.each do |_plugin|
           begin

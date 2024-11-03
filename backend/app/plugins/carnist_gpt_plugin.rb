@@ -1,5 +1,5 @@
 # CarnistGptPlugin.reply_to_comment(Reddit::Comment.find_by_external_id('lhnbym7'))
-class CarnistGptPlugin < Plugin
+class CarnistGptPlugin < OldPlugin
   Reddit::Comment.plugin self, :after_commit, :reply_to_comment
 
   def self.subreddits

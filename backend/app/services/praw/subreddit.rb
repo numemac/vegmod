@@ -46,4 +46,22 @@ class Praw::Subreddit
     @praw.subreddit_widgets_mod_add_button_widget(@id, short_name, description, texts, urls)
   end
 
+  # def subreddit_widgets_mod_add_text_area(subreddit_id: str, short_name: str, text: str) -> Optional[Dict]:
+  def widgets_mod_add_text_area(short_name, text)
+    Reddit::PrawLog.create!(action: "widgets_mod_add_text_area", context: @subreddit)
+    @praw.subreddit_widgets_mod_add_text_area(@id, short_name, text)
+  end
+
+  # def subreddit_widgets_mod_update_text_area(subreddit_id: str, widget_id: str, short_name: str, text: str) -> Optional[Dict]:
+  def widgets_mod_update_text_area(widget_id, short_name, text)
+    Reddit::PrawLog.create!(action: "widgets_mod_update_text_area", context: @subreddit)
+    @praw.subreddit_widgets_mod_update_text_area(@id, widget_id, short_name, text)
+  end
+
+  # def subreddit_widgets_mod_reorder(subreddit_id: str, widget_ids: List[str]) -> None:
+  def widgets_mod_reorder(widget_ids)
+    Reddit::PrawLog.create!(action: "widgets_mod_reorder", context: @subreddit)
+    @praw.subreddit_widgets_mod_reorder(@id, widget_ids)
+  end
+
 end
