@@ -1,0 +1,8 @@
+deb https://ftp.acc.umu.se/debian bookworm main
+deb-src https://ftp.acc.umu.se/debian bookworm main
+
+deb https://ftp.ca.debian.org/debian-security bookworm-security main
+deb-src https://ftp.ca.debian.org/debian-security bookworm-security main
+
+deb https://ftp.acc.umu.se/debian bookworm-updates main
+deb-src https://ftp.acc.umu.se/debian bookworm-updates main
