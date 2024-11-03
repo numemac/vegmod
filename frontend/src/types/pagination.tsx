@@ -3,4 +3,5 @@ export interface Pagination {
     total_pages: number;
     total_entries: number;
     per_page: number;
+    search: string;
 }

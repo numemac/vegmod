@@ -3,7 +3,9 @@ import React from "react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { SidebarContainer } from "@/components/sidebar_container";
+import customFetch from '../lib/fetch';
+
+global.fetch = customFetch as typeof fetch;
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,9 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <SidebarContainer>
-          {children}
-        </SidebarContainer>
+        {children}
       </body>
     </html>
   );

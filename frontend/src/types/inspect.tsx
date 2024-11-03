@@ -24,7 +24,6 @@ export interface InspectRecord {
     belongs_to: { [key: string]: InspectRecord };
     columns: { [key: string]: string };
     detail_href: InspectHref | null;
-    detail_label: string;
     has_many: { [key: string]: InspectHasMany };
     has_one: { [key: string]: InspectRecord };
     metrics: InspectMetric[];
