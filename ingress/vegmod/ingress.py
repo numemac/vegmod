@@ -47,6 +47,9 @@ def pull(subreddits: list[praw.models.Subreddit]):
         widgets_sidebar = list(subreddit.widgets.sidebar)
         subreddit_data["widgets_sidebar"] = serialize_list(widgets_sidebar, cache=cache)
         time.sleep(REQUEST_DELAY)
+        
+        logger.info(f"Pulling subreddit={subreddit.display_name} moderators")
+        subreddit_data["moderators"] = serialize_list(list(subreddit.moderator()), cache=cache)
 
         data[subreddit.display_name] = subreddit_data
         cache.save()

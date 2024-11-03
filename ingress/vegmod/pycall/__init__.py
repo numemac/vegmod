@@ -481,3 +481,102 @@ def subreddit_widgets_mod_add_button_widget(subreddit_id: str, short_name: str, 
     except Exception as e:
         logger.error(f"Error adding button widget: {e}")
         return None
+    
+def subreddit_widgets_mod_add_text_area(subreddit_id: str, short_name: str, text: str) -> Optional[Dict]:
+    """
+    Add a text area widget to a subreddit.
+
+    Parameters:
+    subreddit_id (str): The ID of the subreddit where the widget will be added.
+    short_name (str): The short name for the widget.
+    text (str): The text to display in the widget.
+
+    Returns:
+    Optional[Dict]: The response from the Reddit API if successful, None otherwise.
+    """
+    try:
+        styles = {
+            'backgroundColor': '#FFFFFF',
+            'headerColor': '#0079d3',
+        }
+        
+        return reddit.subreddit(
+            subreddit_id
+        ).widgets.mod.add_text_area(
+            short_name=short_name, 
+            text=text,
+            styles=styles
+        )
+    except Exception as e:
+        logger.error(f"Error adding text area widget: {e}")
+        return None
+
+def subreddit_widgets_mod_update_text_area(subreddit_id: str, widget_id: str, short_name: str, text: str) -> Optional[Dict]:
+    """
+    Update a text area widget on a subreddit.
+
+    Parameters:
+    subreddit_id (str): The ID of the subreddit where the widget will be updated.
+    widget_id (str): The ID of the widget to update.
+    short_name (str): The short name for the widget.
+    text (str): The text to display in the widget.
+
+    Returns:
+    Optional[Dict]: The response from the Reddit API if successful, None otherwise.
+    """
+    try:
+        widget = None
+        for w in reddit.subreddit(subreddit_id).widgets.sidebar:
+            if w.id == widget_id:
+                widget = w
+                break
+        
+        if widget is None:
+            logger.error(f"Widget not found: {widget_id}")
+            return None
+        
+        styles = {
+            'backgroundColor': '#FFFFFF',
+            'headerColor': '#0079d3',
+        }
+                
+        # Reddit's api expects shortName casing instead of short_name when updating
+        # https://praw.readthedocs.io/en/stable/code_overview/other/textarea.html
+        return widget.mod.update(
+            shortName=short_name, 
+            text=text,
+            styles=styles
+        )
+    except Exception as e:
+        logger.error(f"Error updating text area widget: {e}")
+        return None
+
+def subreddit_widgets_mod_reorder(subreddit_id: str, widget_ids: List[str]) -> None:
+    """
+    Reorder widgets on a subreddit.
+
+    Parameters:
+    subreddit_id (str): The ID of the subreddit where the widgets will be reordered.
+    widget_ids (List[str]): A list of widget IDs in the order they should be displayed.
+    """
+    try:
+        # Get the existing widget order
+        existing_order = [widget.id for widget in reddit.subreddit(subreddit_id).widgets.sidebar]
+        new_order = []
+        
+        # Add the new widget IDs in the order they were provided
+        for widget_id in widget_ids:
+            # Only add the widget ID if it exists
+            if widget_id in existing_order:
+                new_order.append(widget_id)
+        
+        # Add any existing widget IDs that weren't provided
+        for widget_id in existing_order:
+            if widget_id not in new_order:
+                new_order.append(widget_id)
+        
+        # Reorder the widgets
+        reddit.subreddit(subreddit_id).widgets.mod.reorder(new_order)
+    except Exception as e:
+        logger.error(f"Error reordering widgets: {e}")
+        return None

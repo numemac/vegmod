@@ -233,19 +233,26 @@ def _serialize_comment(o: praw.models.Comment, is_report : bool = False, cache :
 def _serialize_subreddit(o: praw.models.Subreddit, cache : Cache = None):
     # https://praw.readthedocs.io/en/stable/code_overview/models/subreddit.html
     return {
+        "allow_discovery": o.allow_discovery,
+        "banner_background_image": o.banner_background_image,
         "can_assign_link_flair": o.can_assign_link_flair,
         "can_assign_user_flair": o.can_assign_user_flair,
+        "community_icon": o.community_icon,
         "created_utc": o.created_utc,
         "description": o.description,
         "description_html": o.description_html,
         "display_name": o.display_name,
         "flair_templates": _serialize_subreddit_flair_templates(o.flair.templates, cache=cache),
+        "hide_ads": o.hide_ads,
         "id": o.id,
         "name": o.name,
         "over18": o.over18,
         "public_description": o.public_description,
+        "public_traffic": o.public_traffic,
         "spoilers_enabled": o.spoilers_enabled,
         "subscribers": o.subscribers,
+        "title": o.title,
+        "wls": o.wls,
     }
 
 def _serialize_redditor(o: praw.models.Redditor, cache : Cache = None):
@@ -331,13 +338,13 @@ def _serialize_button_widget(o: praw.models.ButtonWidget, cache : Cache = None):
 def _serialize_button(o: praw.models.Button, cache : Cache = None):
     return {
         "color": o.color,
-        "fill_color": o.fillColor,
+        "fill_color": o.fillColor if hasattr(o, "fillColor") else None,
         "height": o.height if hasattr(o, "height") else None,
         "hover_state": o.hoverState if hasattr(o, "hoverState") else None,
         "kind": o.kind,
         "link_url": o.linkUrl if hasattr(o, "linkUrl") else None,
         "text": o.text,
-        "text_color": o.textColor,
+        "text_color": o.textColor if hasattr(o, "textColor") else None,
         "url": o.url,
         "width": o.width if hasattr(o, "width") else None,
     }
