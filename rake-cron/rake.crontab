@@ -3,6 +3,9 @@
 # So this should import one minute after the python ingress
 1-59/3 * * * * RAILS_ENV=production cd /rails && bundle exec rake import:ingress >> /rails/log/rake.log 2>&1
 
+# run rake score:freeze_24h every 5 minutes
+*/5 * * * * RAILS_ENV=production cd /rails && bundle exec rake score:freeze_24h >> /rails/log/rake.log 2>&1
+
 # hourly run rake metrics:hour
 0 * * * * RAILS_ENV=production cd /rails && bundle exec rake metrics:hour >> /rails/log/rake.log 2>&1
 
@@ -10,7 +13,7 @@
 0 0 * * * RAILS_ENV=production cd /rails && bundle exec rake metrics:day >> /rails/log/rake.log 2>&1
 
 # weekly run rake metrics:week
-0 0 * * 0 RAILS_ENV=production cd /rails && bundle exec rake metrics:week >> /rails/log/rake.log 2>&1
+0 0 * * 1 RAILS_ENV=production cd /rails && bundle exec rake metrics:week >> /rails/log/rake.log 2>&1
 
 # monthly run rake metrics:month
 0 0 1 * * RAILS_ENV=production cd /rails && bundle exec rake metrics:month >> /rails/log/rake.log 2>&1
@@ -18,5 +21,14 @@
 # yearly run rake metrics:year
 0 0 1 1 * RAILS_ENV=production cd /rails && bundle exec rake metrics:year >> /rails/log/rake.log 2>&1
 
+# hourly on the 1st minute run rake metrics:clean
+3 * * * * RAILS_ENV=production cd /rails && bundle exec rake metrics:clean >> /rails/log/rake.log 2>&1
+
+# hourly on the 7th minute run karma:month
+0 * * * * RAILS_ENV=production cd /rails && bundle exec rake karma:month >> /rails/log/rake.log 2>&1
+
 # hourly on the 8th minute run sidebar:configure
 8 * * * * RAILS_ENV=production cd /rails && bundle exec rake sidebar:configure >> /rails/log/rake.log 2>&1
+
+# Run user:sync every minute
+*/1 * * * * RAILS_ENV=production cd /rails && bundle exec rake user:sync >> /rails/log/rake.log 2>&1

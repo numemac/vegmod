@@ -4,9 +4,7 @@ USER root
 
 WORKDIR /rails
 
-# Set debian mirror
-COPY sources.list /etc/apt/sources.list
-
+# Install cron and vim
 RUN apt-get update && apt-get install -y cron vim
 
 # Setup the crontab
