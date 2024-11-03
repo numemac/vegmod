@@ -30,12 +30,12 @@ module Backend
     end
 
     config.action_mailer.smtp_settings = {
-      address: 'smtp.mailgun.org',
-      port: 587,
-      domain: 'mg.vegmod.com',
+      address: ENV['SMTP_ADDRESS'],
+      port: ENV['SMTP_PORT'],
+      domain: ENV['SMTP_DOMAIN'],
       authentication: 'plain',
-      user_name: 'postmaster@mg.vegmod.com',
-      password: 'd95b68c860a07f1e00ca4a4e60e9f001-5dcb5e36-da13c68b'
+      user_name: ENV['SMTP_USERNAME'],
+      password: ENV['SMTP_PASSWORD']
     }
   end
 end
