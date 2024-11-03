@@ -1,11 +1,13 @@
 services:
-  vegmod-nginx:
+  vegmod.com:
     image: nginx
+    restart: unless-stopped
     env_file: .env
     volumes:
-      - ./nginx:/etc/nginx/conf.d
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
     ports:
-      - "9400:9400"
+      - "9400:443"
     networks:
       - frontend
       - backend
@@ -13,20 +15,37 @@ services:
 
   vegmod-postgres:
     image: postgres:16.3-bookworm
+    container_name: vegmod-postgres
+    restart: unless-stopped
+    command: postgres -p 9401
     env_file: .env
-    restart: always
     expose:
-      - "5432"
+      - "9401"
     ports:
-      - "9401:5432"
+      - "9401:9401"
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
     networks:
       - backend
 
+  vegmod-postgres-test:
+    image: postgres:16.3-bookworm
+    container_name: vegmod-postgres-test
+    restart: unless-stopped
+    command: postgres -p 9405
+    env_file: .env
+    expose:
+      - "9405"
+    ports:
+      - "9405:9405"
+    volumes:
+      - ./data/postgres-test:/var/lib/postgresql/data
+    networks:
+      - backend
+
   vegmod-ingress:
     build: ./ingress
-    restart: always
+    restart: unless-stopped
     env_file: .env
     volumes:
       - ./logs:/app/logs
@@ -34,9 +53,9 @@ services:
 
   vegmod-rails:
     image: auguryan/vegmod-rails:latest
+    restart: unless-stopped
     build: ./backend
     command: ./bin/rails s -b 0.0.0.0 -p 9402
-    restart: always
     env_file: .env
     volumes:
       - ./logs:/rails/log
@@ -51,10 +70,34 @@ services:
       - backend
       - reddit
 
+  vegmod-rspec:
+      image: auguryan/vegmod-rails:latest
+      restart: unless-stopped
+      build: ./backend
+      command: bundle exec rspec
+      env_file: .env
+      environment:
+        - RAILS_ENV=test
+      volumes:
+        - ./logs:/rails/log
+        - ./data:/rails/data
+        - ./backend/app:/rails/app
+        - ./backend/lib:/rails/lib
+        - ./backend/config:/rails/config
+        - ./backend/db:/rails/db
+        - ./backend/spec:/rails/spec
+      networks:
+        - backend
+        - reddit   
+
   vegmod-rake-cron:
     build: ./rake-cron
-    restart: always
+    restart: unless-stopped
     env_file: .env
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=1
+      - net.ipv6.conf.default.disable_ipv6=1
+      - net.ipv6.conf.lo.disable_ipv6=1
     volumes:
       - ./logs:/rails/log
       - ./data:/rails/data
@@ -66,7 +109,7 @@ services:
     build: 
       context: ./frontend
       dockerfile: dev.Dockerfile
-    restart: always
+    restart: unless-stopped
     env_file: .env
     expose:
       - "3000"
@@ -79,6 +122,7 @@ services:
 
   vegmod-minio:
     image: bitnami/minio
+    restart: unless-stopped
     user: root
     env_file:
       - .env
